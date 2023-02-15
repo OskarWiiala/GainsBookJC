@@ -1,5 +1,6 @@
 package com.example.gainsbookjc
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,6 +21,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -34,14 +37,14 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             GainsBookJCTheme {
-                MainScreenView(fontFamily)
+                MainScreenView(fontFamily, lifecycleScope = lifecycleScope, context = applicationContext)
             }
         }
     }
 }
 
 @Composable
-fun MainScreenView(fontFamily: FontFamily) {
+fun MainScreenView(fontFamily: FontFamily, lifecycleScope: LifecycleCoroutineScope, context: Context) {
     val navController = rememberNavController()
     Scaffold(
         topBar = {
@@ -78,7 +81,7 @@ fun MainScreenView(fontFamily: FontFamily) {
         bottomBar = { BottomNavigation(navController = navController) }
     ) {
         Column(modifier = Modifier.padding(it)) {
-            NavigationGraph(navController = navController)
+            NavigationGraph(navController = navController, lifecycleScope = lifecycleScope, context)
         }
     }
 }
