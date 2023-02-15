@@ -8,6 +8,7 @@ import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
 import com.example.gainsbookjc.getWorkoutWithExercisesByYearMonth
 import com.example.gainsbookjc.getYears
+import com.example.gainsbookjc.insertYear
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,10 +24,15 @@ class LogViewModel(context: Context) : ViewModel() {
     fun getWorkoutsMVVM() {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "Getting workouts in MVVM")
-            val initialList = getWorkoutWithExercisesByYearMonth(dao = dao, year = 2023, month = 2)
+            val initialList = getWorkoutWithExercisesByYearMonth(dao = dao, year = currentYear, month = currentMonth)
             _workouts.emit(initialList)
         }
     }
+
+    private var currentYear = 0
+    fun setCurrentYear(year: Int) {currentYear = year}
+    private var currentMonth = 0
+    fun setCurrentMonth(month: Int) {currentMonth = month}
 
     private val _years = MutableStateFlow(listOf<Year>())
     val years: StateFlow<List<Year>> get() = _years
@@ -36,6 +42,13 @@ class LogViewModel(context: Context) : ViewModel() {
             Log.d(TAG, "Getting years in MVVM")
             val initialList = getYears(dao)
             _years.emit(initialList)
+        }
+    }
+
+    fun insertYearMVVM(year: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            Log.d(TAG, "Inserting year: $year")
+            insertYear(dao = dao, year = year)
         }
     }
 }

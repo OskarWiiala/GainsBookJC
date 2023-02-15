@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gainsbookjc.R
@@ -25,6 +28,7 @@ import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
 import com.example.gainsbookjc.insertToDatabase
+import com.example.gainsbookjc.insertYear
 import com.example.gainsbookjc.viewmodels.LogViewModel
 import com.example.gainsbookjc.viewmodels.logViewModelFactory
 import java.util.Calendar
@@ -36,7 +40,8 @@ fun LogScreen(lifecycleScope: LifecycleCoroutineScope, context: Context) {
     val viewModel: LogViewModel = viewModel(factory = logViewModelFactory {
         LogViewModel(context)
     })
-    Log.d(TAG, "start runBlocking")
+    viewModel.setCurrentYear(Calendar.getInstance().get(Calendar.YEAR))
+    viewModel.setCurrentMonth(Calendar.getInstance().get(Calendar.MONTH) + 1)
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
@@ -46,30 +51,10 @@ fun LogScreen(lifecycleScope: LifecycleCoroutineScope, context: Context) {
             horizontalArrangement = Arrangement.End
         ) {
             // + new year button
-            Button(
-                onClick = { Log.d("click", "Clicked + new year") },
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
-                contentPadding = PaddingValues(10.dp)
-            ) {
-                Text(text = "+ new year")
-            }
+            AddNewYear(viewModel = viewModel)
             Spacer(modifier = Modifier.width(10.dp))
 
-            val listMonths = listOf(
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December"
-            )
-            SelectMonthDropdown(listMonths = listMonths)
+            SelectMonthDropdown(viewModel)
             Spacer(modifier = Modifier.width(10.dp))
             SelectYearDropdown(viewModel)
             Spacer(modifier = Modifier.width(10.dp))
@@ -85,6 +70,74 @@ fun LogScreen(lifecycleScope: LifecycleCoroutineScope, context: Context) {
                 contentColor = Color.White,
             ) {
                 Text(text = "+", fontSize = 30.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun AddNewYear(viewModel: LogViewModel) {
+    var showDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (showDialog) {
+        NewYearDialog(viewModel = viewModel, setShowDialog = {
+            showDialog = it
+        })
+    }
+
+    Button(
+        onClick = { showDialog = true },
+        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
+        contentPadding = PaddingValues(10.dp)
+    ) {
+        Text(text = "+ new year")
+    }
+}
+
+@Composable
+fun NewYearDialog(viewModel: LogViewModel, setShowDialog: (Boolean) -> Unit) {
+    val TAG = "NewYearDialog"
+    var textFieldState by remember {
+        mutableStateOf("")
+    }
+    val scope = rememberCoroutineScope()
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = Color.White,
+            border = BorderStroke(2.dp, MaterialTheme.colors.primary)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "Add new year")
+                Spacer(modifier = Modifier.height(16.dp))
+                TextField(
+                    value = textFieldState,
+                    onValueChange = { textFieldState = it },
+                    label = { Text(text = "Enter a new year here") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(onClick = {
+                        val input = textFieldState.toIntOrNull()
+                        if (input != null) {
+                            viewModel.insertYearMVVM(textFieldState.toInt())
+                            setShowDialog(false)
+                        } else {
+                            Log.d(TAG, "Input not integer!")
+                        }
+                    }) {
+                        Text(text = "Ok")
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(onClick = { setShowDialog(false) }) {
+                        Text(text = "Cancel")
+                    }
+                }
+
             }
         }
     }
@@ -161,12 +214,26 @@ fun WorkoutCard(item: WorkoutWithExercises) {
 }
 
 @Composable
-fun SelectMonthDropdown(listMonths: List<String>) {
+fun SelectMonthDropdown(viewModel: LogViewModel) {
+    val listMonths = listOf(
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    )
     var expanded by remember {
         mutableStateOf(false)
     }
     var currentMonth by remember {
-        mutableStateOf(1)
+        mutableStateOf(Calendar.getInstance().get(Calendar.MONTH))
     }
     // Select month dropdown
     Box() {
@@ -196,6 +263,8 @@ fun SelectMonthDropdown(listMonths: List<String>) {
                     onClick = {
                         Log.d("click", "Year dropdown selected: $itemValue")
                         currentMonth = itemIndex
+                        viewModel.setCurrentMonth(currentMonth + 1)
+                        viewModel.getWorkoutsMVVM()
                         expanded = false
                     },
                     enabled = (itemIndex != currentMonth)
@@ -254,6 +323,8 @@ fun SelectYearDropdown(viewModel: LogViewModel) {
                     onClick = {
                         Log.d("click", "Year dropdown selected: $itemValue")
                         currentYear = itemValue
+                        viewModel.setCurrentYear(currentYear.year)
+                        viewModel.getWorkoutsMVVM()
                         expanded = false
                     },
                     enabled = (itemValue != currentYear)

@@ -120,3 +120,7 @@ suspend fun getWorkoutWithExercisesByYearMonth(dao: AppDao, year: Int, month: In
 suspend fun getWorkoutByID(dao: AppDao, id: Int): List<WorkoutWithExercises> {
     return dao.getWorkoutWithExercisesByID(workoutID = id)
 }
+
+suspend fun insertYear(dao: AppDao, year: Int) {
+    dao.insertYear(Year(year))
+}
