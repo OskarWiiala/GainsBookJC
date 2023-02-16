@@ -23,18 +23,22 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.gainsbookjc.WorkoutScreens
 import com.example.gainsbookjc.R
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
-import com.example.gainsbookjc.insertToDatabase
-import com.example.gainsbookjc.insertYear
 import com.example.gainsbookjc.viewmodels.LogViewModel
 import com.example.gainsbookjc.viewmodels.logViewModelFactory
 import java.util.Calendar
 
 @Composable
-fun LogScreen(lifecycleScope: LifecycleCoroutineScope, context: Context) {
+fun LogScreen(
+    lifecycleScope: LifecycleCoroutineScope,
+    context: Context,
+    navController: NavController
+) {
     val TAG = "LogScreen"
     val dao = AppDatabase.getInstance(context).appDao
     val viewModel: LogViewModel = viewModel(factory = logViewModelFactory {
@@ -66,7 +70,10 @@ fun LogScreen(lifecycleScope: LifecycleCoroutineScope, context: Context) {
                 modifier = Modifier
                     .align(Alignment.Bottom)
                     .padding(bottom = 16.dp, start = 16.dp),
-                onClick = { Log.d("fab", "fab clicked: ${viewModel.workouts.value}") },
+                onClick = {
+                    // navController.navigate(WorkoutScreens.NewWorkoutScreen.withArgs("argumentgoeshere"))
+                    navController.navigate(WorkoutScreens.NewWorkoutScreen.screen_route)
+                },
                 contentColor = Color.White,
             ) {
                 Text(text = "+", fontSize = 30.sp)
@@ -102,7 +109,6 @@ fun NewYearDialog(viewModel: LogViewModel, setShowDialog: (Boolean) -> Unit) {
     var textFieldState by remember {
         mutableStateOf("")
     }
-    val scope = rememberCoroutineScope()
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(8.dp),
@@ -124,7 +130,7 @@ fun NewYearDialog(viewModel: LogViewModel, setShowDialog: (Boolean) -> Unit) {
                     Button(onClick = {
                         val input = textFieldState.toIntOrNull()
                         if (input != null) {
-                            viewModel.insertYearMVVM(textFieldState.toInt())
+                            viewModel.insertYearMVVM(input)
                             setShowDialog(false)
                         } else {
                             Log.d(TAG, "Input not integer!")
@@ -137,7 +143,6 @@ fun NewYearDialog(viewModel: LogViewModel, setShowDialog: (Boolean) -> Unit) {
                         Text(text = "Cancel")
                     }
                 }
-
             }
         }
     }
@@ -156,8 +161,10 @@ fun WorkoutList(viewModel: LogViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun WorkoutCard(item: WorkoutWithExercises) {
+    val TAG = "WorkoutCard"
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -165,6 +172,7 @@ fun WorkoutCard(item: WorkoutWithExercises) {
         shape = RoundedCornerShape(12.dp),
         elevation = 5.dp,
         border = BorderStroke(2.dp, MaterialTheme.colors.primary),
+        onClick = { Log.d(TAG, "Clicked on card with workoutID: ${item.workout.workoutID}") }
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
