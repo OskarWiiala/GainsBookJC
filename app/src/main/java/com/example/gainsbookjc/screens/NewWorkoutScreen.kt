@@ -1,10 +1,10 @@
 package com.example.gainsbookjc.screens
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -19,20 +19,32 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.gainsbookjc.BottomNavItem
 import com.example.gainsbookjc.R
+import com.example.gainsbookjc.viewmodels.*
 import java.util.*
 
 @Composable
-fun NewWorkoutScreen(navController: NavController) {
+fun NewWorkoutScreen(context: Context, navController: NavController) {
     val TAG = "NewWorkoutScreen"
+    val viewModel: NewExerciseViewModel = viewModel(factory = newExerciseViewModelFactory {
+        NewExerciseViewModel(context)
+    })
 
     val calendar = Calendar.getInstance()
-    var selectedDay = calendar.get(Calendar.DAY_OF_MONTH)
-    var selectedMonth = calendar.get(Calendar.MONTH) + 1
-    var selectedMonth2 = calendar.get(Calendar.MONTH)
-    var selectedYear = calendar.get(Calendar.YEAR)
+    var selectedDay by remember {
+        mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH))
+    }
+    var selectedMonth by remember {
+        mutableStateOf(calendar.get(Calendar.MONTH) + 1)
+    }
+    val selectedMonth2 = calendar.get(Calendar.MONTH)
+    var selectedYear by remember {
+        mutableStateOf(calendar.get(Calendar.YEAR))
+    }
 
     var date by remember {
         mutableStateOf("$selectedDay.$selectedMonth.$selectedYear")
@@ -49,6 +61,7 @@ fun NewWorkoutScreen(navController: NavController) {
             selectedDay = mSelectedDay
             selectedMonth = mSelectedMonth2 + 1
             selectedYear = mSelectedYear
+            Log.d("datepicker", "$selectedDay $selectedMonth $selectedYear")
         }, selectedYear, selectedMonth2, selectedDay
     )
 
@@ -79,19 +92,19 @@ fun NewWorkoutScreen(navController: NavController) {
             }
         }
 
-        var list by remember {
-            mutableStateOf(listOf("test1", "test2", "test3", "test4", "test5", "test6", "test7", "test8", "test9", "test10"))
-        }
+        val list by viewModel.exercises.collectAsState()
 
-        LazyColumn(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.7f)) {
-            itemsIndexed(list) { index, description ->
-                ExerciseCard(description)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.7f)
+        ) {
+            itemsIndexed(list) { index, exerciseWithIndex ->
+                ExerciseCard(viewModel, exerciseWithIndex.description, exerciseWithIndex.index)
             }
         }
-        
-        Button(onClick = { Log.d(TAG, "clicked add new exercise") }) {
-            Text(text = "+ NEW EXERCISE")
-        }
+
+        AddNewExercise(viewModel)
 
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -100,6 +113,8 @@ fun NewWorkoutScreen(navController: NavController) {
                 .fillMaxSize()
         ) {
             Button(onClick = {
+                Log.d(TAG, "Attempting insert workout")
+                viewModel.addWorkout(list, selectedDay, selectedMonth, selectedYear)
                 navController.navigate(BottomNavItem.LogScreen.screen_route)
             }) {
                 Text(text = "OK")
@@ -113,8 +128,235 @@ fun NewWorkoutScreen(navController: NavController) {
 }
 
 @Composable
-fun ExerciseCard(description: String) {
+fun AddNewExercise(viewModel: NewExerciseViewModel) {
+    val TAG = "AddNewExercise"
+
+    var showDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (showDialog) {
+        AddNewExerciseDialog(viewModel = viewModel, setShowDialog = {
+            showDialog = it
+        })
+    }
+
+    Button(onClick = {
+        Log.d(TAG, "clicked add new exercise")
+        showDialog = true
+
+    }) {
+        Text(text = "+ NEW EXERCISE")
+    }
+}
+
+@Composable
+fun AddNewExerciseDialog(viewModel: NewExerciseViewModel, setShowDialog: (Boolean) -> Unit) {
+    val TAG = "AddNewExerciseDialog"
+
+    val list by viewModel.exercises.collectAsState()
+    var textFieldState by remember {
+        mutableStateOf("")
+    }
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = Color.White,
+            border = BorderStroke(2.dp, MaterialTheme.colors.primary)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "Add new exercise")
+                Spacer(modifier = Modifier.height(16.dp))
+                TextField(
+                    value = textFieldState,
+                    onValueChange = { textFieldState = it },
+                    label = { Text(text = "Enter a new exercise here") },
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(onClick = {
+                        val exercisesList = mutableListOf<ExerciseWithIndex>()
+                        list.forEach { exerciseWithIndex ->
+                            exercisesList.add(exerciseWithIndex)
+                        }
+                        var indexOfLast = 1
+                        if (exercisesList.isNotEmpty()) {
+                            Log.d(TAG, "list not empty")
+                            val indexList: MutableList<Int> = mutableListOf()
+                            exercisesList.forEach { exerciseWithIndex ->
+                                indexList.add(exerciseWithIndex.index)
+                            }
+                            indexOfLast = indexList.max() + 1
+                        }
+                        Log.d(TAG, "indexOfLast: $indexOfLast")
+                        exercisesList.add(
+                            ExerciseWithIndex(
+                                description = textFieldState,
+                                indexOfLast
+                            )
+                        )
+                        viewModel.addExercises(exercisesList)
+                        setShowDialog(false)
+                    }) {
+                        Text(text = "Ok")
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(onClick = { setShowDialog(false) }) {
+                        Text(text = "Cancel")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EditExerciseDialog(
+    viewModel: NewExerciseViewModel,
+    description: String,
+    exerciseIndex: Int,
+    setShowDialog: (Boolean) -> Unit
+) {
+    val TAG = "EditExerciseDialog"
+
+    var textFieldState by remember {
+        mutableStateOf("")
+    }
+
+    val list by viewModel.exercises.collectAsState()
+
+    /*list.forEach { exerciseWithIndex ->
+        if (exerciseIndex == exerciseWithIndex.index) {
+            Log.d(TAG, "Found exercise: ${exerciseWithIndex.description}")
+            textFieldState = exerciseWithIndex.description
+        }
+    }*/
+    textFieldState = description
+
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = Color.White,
+            border = BorderStroke(2.dp, MaterialTheme.colors.primary)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "Edit exercise")
+                Spacer(modifier = Modifier.height(16.dp))
+                TextField(
+                    value = textFieldState,
+                    onValueChange = { textFieldState = it },
+                    label = { Text(text = "Edit your exercise here") },
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(onClick = {
+                        val exercisesList = list.toMutableList()
+                        exercisesList.remove(
+                            ExerciseWithIndex(
+                                description = description,
+                                index = exerciseIndex
+                            )
+                        )
+                        exercisesList.add(
+                            ExerciseWithIndex(
+                                description = textFieldState,
+                                index = exerciseIndex
+                            )
+                        )
+                        exercisesList.sortBy { exerciseWithIndex -> exerciseWithIndex.index }
+                        viewModel.addExercises(exercisesList)
+                        setShowDialog(false)
+                    }) {
+                        Text(text = "Ok")
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(onClick = { setShowDialog(false) }) {
+                        Text(text = "Cancel")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DeleteExerciseDialog(
+    viewModel: NewExerciseViewModel,
+    description: String,
+    exerciseIndex: Int,
+    setShowDialog: (Boolean) -> Unit
+) {
+    val TAG = "DeleteExerciseDialog"
+
+    val list by viewModel.exercises.collectAsState()
+
+    list.forEach { exerciseWithIndex ->
+        if (exerciseIndex == exerciseWithIndex.index) {
+            Log.d(TAG, "Found exercise: $exerciseWithIndex")
+        }
+    }
+
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = Color.White,
+            border = BorderStroke(2.dp, MaterialTheme.colors.primary)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "Delete exercise?")
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(onClick = {
+                        val exercisesList = list.toMutableList()
+                        exercisesList.remove(
+                            ExerciseWithIndex(
+                                description = description,
+                                index = exerciseIndex
+                            )
+                        )
+                        exercisesList.sortBy { exerciseWithIndex -> exerciseWithIndex.index }
+                        viewModel.addExercises(exercisesList)
+                        setShowDialog(false)
+                    }) {
+                        Text(text = "Ok")
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(onClick = { setShowDialog(false) }) {
+                        Text(text = "Cancel")
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ExerciseCard(viewModel: NewExerciseViewModel, description: String, index: Int) {
     val TAG = "ExerciseCard"
+
+    var showEditDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showDeleteDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (showEditDialog) {
+        EditExerciseDialog(viewModel = viewModel, description = description, exerciseIndex = index, setShowDialog = {
+            showEditDialog = it
+        })
+    }
+
+    if (showDeleteDialog) {
+        DeleteExerciseDialog(
+            viewModel = viewModel,
+            description = description,
+            exerciseIndex = index,
+            setShowDialog = { showDeleteDialog = it })
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -123,18 +365,28 @@ fun ExerciseCard(description: String) {
         elevation = 5.dp,
         border = BorderStroke(2.dp, MaterialTheme.colors.primary),
     ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Row(horizontalArrangement = Arrangement.Start) {
                 Text(text = description)
             }
             Row(horizontalArrangement = Arrangement.End) {
-                IconButton(onClick = { Log.d(TAG, "clicked edit") }) {
+                IconButton(onClick = {
+                    Log.d(TAG, "clicked edit")
+                    showEditDialog = true
+                }) {
                     Icon(
                         painter = painterResource(id = R.drawable.edit_icon_24),
                         contentDescription = "Edit exercise"
                     )
                 }
-                IconButton(onClick = { Log.d(TAG, "clicked delete") }) {
+                IconButton(onClick = {
+                    Log.d(TAG, "clicked delete")
+                    showDeleteDialog = true
+                }) {
                     Icon(
                         painter = painterResource(id = R.drawable.delete_icon_24),
                         contentDescription = "delete exercise"

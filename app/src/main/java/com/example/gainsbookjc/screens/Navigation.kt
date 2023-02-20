@@ -60,7 +60,7 @@ fun NavigationGraph(
         composable(
             route = WorkoutScreens.NewWorkoutScreen.screen_route,
         ) {
-            NewWorkoutScreen(navController = navController)
+            NewWorkoutScreen(context = context, navController = navController)
         }
     }
 }

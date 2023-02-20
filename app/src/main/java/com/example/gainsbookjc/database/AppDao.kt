@@ -13,7 +13,7 @@ interface AppDao {
     // in order to not block the main thread
     // onConflict is when you try to insert a workout which already exists
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertWorkout(workout: Workout)
+    suspend fun insertWorkout(workout: Workout): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExercise(exercise: Exercise)
@@ -36,4 +36,8 @@ interface AppDao {
     @Transaction
     @Query("SELECT * FROM year")
     suspend fun getYears(): List<Year>
+
+    @Transaction
+    @Query("SELECT * FROM lift WHERE lift = :lift AND type = :type AND year = :year AND month = :month")
+    suspend fun getLiftsByLiftTypeYearMonth(lift: String, type: String, year: Int, month: Int): List<Lift>
 }

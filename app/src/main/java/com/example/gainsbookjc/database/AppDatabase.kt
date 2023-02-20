@@ -8,13 +8,15 @@ import com.example.gainsbookjc.database.entities.Workout
 import com.example.gainsbookjc.database.entities.Exercise
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.entities.Lift
+import com.example.gainsbookjc.database.entities.Profile
 
 @Database(
     entities = [
         Workout::class,
         Exercise::class,
         Year::class,
-        Lift::class
+        Lift::class,
+        Profile::class
     ],
     version = 1
 )

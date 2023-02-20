@@ -6,6 +6,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.example.gainsbookjc.database.AppDao
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Exercise
+import com.example.gainsbookjc.database.entities.Lift
 import com.example.gainsbookjc.database.entities.Workout
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
@@ -123,4 +124,12 @@ suspend fun getWorkoutByID(dao: AppDao, id: Int): List<WorkoutWithExercises> {
 
 suspend fun insertYear(dao: AppDao, year: Int) {
     dao.insertYear(Year(year))
+}
+
+suspend fun insertLift(dao: AppDao, lift: Lift) {
+    dao.insertLift(lift)
+}
+
+suspend fun getLiftsByLiftTypeYearMonth(dao: AppDao, lift: String, type: String, year: Int, month: Int): List<Lift> {
+    return dao.getLiftsByLiftTypeYearMonth(lift = lift, type = type, year = year, month = month)
 }
