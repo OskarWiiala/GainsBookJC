@@ -6,7 +6,7 @@ sealed class WorkoutScreens(val screen_route: String) {
     object EditWorkoutScreen: WorkoutScreens("edit_workout_screen")
 
     // only works for mandatory arguments
-    fun withArgs(vararg args: String): String {
+    fun withArgs(vararg args: Int): String {
         return buildString {
             append(screen_route)
             args.forEach { arg ->

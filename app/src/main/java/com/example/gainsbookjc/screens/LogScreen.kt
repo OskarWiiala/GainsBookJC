@@ -29,7 +29,9 @@ import com.example.gainsbookjc.R
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
+import com.example.gainsbookjc.viewmodels.ExerciseWithIndex
 import com.example.gainsbookjc.viewmodels.LogViewModel
+import com.example.gainsbookjc.viewmodels.NewWorkoutViewModel
 import com.example.gainsbookjc.viewmodels.logViewModelFactory
 import java.util.Calendar
 
@@ -65,7 +67,7 @@ fun LogScreen(
         }
 
         Row() {
-            WorkoutList(viewModel = viewModel)
+            WorkoutList(viewModel = viewModel, navController = navController)
             FloatingActionButton(
                 modifier = Modifier
                     .align(Alignment.Bottom)
@@ -149,22 +151,33 @@ fun NewYearDialog(viewModel: LogViewModel, setShowDialog: (Boolean) -> Unit) {
 }
 
 @Composable
-fun WorkoutList(viewModel: LogViewModel) {
-    viewModel.getWorkoutsMVVM()
+fun WorkoutList(viewModel: LogViewModel, navController: NavController) {
+    viewModel.getWorkouts()
     val list by viewModel.workouts.collectAsState()
     LazyColumn(modifier = Modifier.fillMaxWidth(0.75f)) {
         itemsIndexed(
             list
         ) { index, item ->
-            WorkoutCard(item)
+            WorkoutCard(item = item, navController = navController, viewModel = viewModel)
         }
     }
 }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun WorkoutCard(item: WorkoutWithExercises) {
+fun WorkoutCard(item: WorkoutWithExercises, navController: NavController, viewModel: LogViewModel) {
     val TAG = "WorkoutCard"
+
+    var showDeleteDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (showDeleteDialog) {
+        DeleteWorkoutDialog(viewModel = viewModel, workoutID = item.workout.workoutID, setShowDialog = {
+            showDeleteDialog = it
+        })
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -172,7 +185,10 @@ fun WorkoutCard(item: WorkoutWithExercises) {
         shape = RoundedCornerShape(12.dp),
         elevation = 5.dp,
         border = BorderStroke(2.dp, MaterialTheme.colors.primary),
-        onClick = { Log.d(TAG, "Clicked on card with workoutID: ${item.workout.workoutID}") }
+        onClick = {
+            Log.d(TAG, "Clicked on card with workoutID: ${item.workout.workoutID}")
+            navController.navigate(WorkoutScreens.ViewWorkoutScreen.withArgs(item.workout.workoutID))
+        }
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
@@ -198,7 +214,10 @@ fun WorkoutCard(item: WorkoutWithExercises) {
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                IconButton(onClick = { Log.d("delete", "clicked delete") }) {
+                IconButton(onClick = {
+                    Log.d("delete", "clicked delete")
+                    showDeleteDialog = true
+                }) {
                     Icon(
                         modifier = Modifier
                             .height(32.dp)
@@ -215,6 +234,41 @@ fun WorkoutCard(item: WorkoutWithExercises) {
                         painter = painterResource(id = R.drawable.edit_icon_24),
                         contentDescription = "Edit workout"
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DeleteWorkoutDialog(
+    viewModel: LogViewModel,
+    workoutID: Int,
+    setShowDialog: (Boolean) -> Unit
+) {
+    val TAG = "DeleteWorkoutDialog"
+
+    Dialog(onDismissRequest = { setShowDialog(false) }) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(0.9f),
+            shape = RoundedCornerShape(8.dp),
+            color = Color.White,
+            border = BorderStroke(2.dp, MaterialTheme.colors.primary)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = "Delete workout?")
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(onClick = {
+                        viewModel.deleteWorkoutByID(workoutID)
+                        setShowDialog(false)
+                    }) {
+                        Text(text = "Ok")
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Button(onClick = { setShowDialog(false) }) {
+                        Text(text = "Cancel")
+                    }
                 }
             }
         }
@@ -272,7 +326,7 @@ fun SelectMonthDropdown(viewModel: LogViewModel) {
                         Log.d("click", "Year dropdown selected: $itemValue")
                         currentMonth = itemIndex
                         viewModel.setCurrentMonth(currentMonth + 1)
-                        viewModel.getWorkoutsMVVM()
+                        viewModel.getWorkouts()
                         expanded = false
                     },
                     enabled = (itemIndex != currentMonth)
@@ -288,7 +342,7 @@ fun SelectMonthDropdown(viewModel: LogViewModel) {
 fun SelectYearDropdown(viewModel: LogViewModel) {
     val TAG = "SelectYearDropdown"
 
-    viewModel.getYearsMVVM()
+    viewModel.getYears()
     val list by viewModel.years.collectAsState()
 
     var expanded by remember {
@@ -332,7 +386,7 @@ fun SelectYearDropdown(viewModel: LogViewModel) {
                         Log.d("click", "Year dropdown selected: $itemValue")
                         currentYear = itemValue
                         viewModel.setCurrentYear(currentYear.year)
-                        viewModel.getWorkoutsMVVM()
+                        viewModel.getWorkouts()
                         expanded = false
                     },
                     enabled = (itemValue != currentYear)

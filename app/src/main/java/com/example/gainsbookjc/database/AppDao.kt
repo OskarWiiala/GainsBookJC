@@ -12,6 +12,8 @@ interface AppDao {
     // suspend because they are executed on a background thread
     // in order to not block the main thread
     // onConflict is when you try to insert a workout which already exists
+
+    // Insertions
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorkout(workout: Workout): Long
 
@@ -24,6 +26,7 @@ interface AppDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLift(lift: Lift)
 
+    // GET Queries
     // @Transaction is required to prevent multithreading problems
     @Transaction
     @Query("SELECT * FROM workout WHERE workoutID = :workoutID")
@@ -40,4 +43,13 @@ interface AppDao {
     @Transaction
     @Query("SELECT * FROM lift WHERE lift = :lift AND type = :type AND year = :year AND month = :month")
     suspend fun getLiftsByLiftTypeYearMonth(lift: String, type: String, year: Int, month: Int): List<Lift>
+
+    // Deletions
+    @Transaction
+    @Query("DELETE FROM workout WHERE workoutID = :workoutID")
+    suspend fun deleteWorkoutByID(workoutID: Int)
+
+    @Transaction
+    @Query("DELETE FROM exercise WHERE workoutID = :workoutID")
+    suspend fun deleteExercisesByWorkoutID(workoutID: Int)
 }

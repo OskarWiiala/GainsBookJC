@@ -30,8 +30,8 @@ import java.util.*
 @Composable
 fun NewWorkoutScreen(context: Context, navController: NavController) {
     val TAG = "NewWorkoutScreen"
-    val viewModel: NewExerciseViewModel = viewModel(factory = newExerciseViewModelFactory {
-        NewExerciseViewModel(context)
+    val viewModel: NewWorkoutViewModel = viewModel(factory = newExerciseViewModelFactory {
+        NewWorkoutViewModel(context)
     })
 
     val calendar = Calendar.getInstance()
@@ -128,7 +128,7 @@ fun NewWorkoutScreen(context: Context, navController: NavController) {
 }
 
 @Composable
-fun AddNewExercise(viewModel: NewExerciseViewModel) {
+fun AddNewExercise(viewModel: NewWorkoutViewModel) {
     val TAG = "AddNewExercise"
 
     var showDialog by remember {
@@ -151,7 +151,7 @@ fun AddNewExercise(viewModel: NewExerciseViewModel) {
 }
 
 @Composable
-fun AddNewExerciseDialog(viewModel: NewExerciseViewModel, setShowDialog: (Boolean) -> Unit) {
+fun AddNewExerciseDialog(viewModel: NewWorkoutViewModel, setShowDialog: (Boolean) -> Unit) {
     val TAG = "AddNewExerciseDialog"
 
     val list by viewModel.exercises.collectAsState()
@@ -160,6 +160,7 @@ fun AddNewExerciseDialog(viewModel: NewExerciseViewModel, setShowDialog: (Boolea
     }
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
+            modifier = Modifier.fillMaxWidth(0.9f).fillMaxHeight(0.6f),
             shape = RoundedCornerShape(8.dp),
             color = Color.White,
             border = BorderStroke(2.dp, MaterialTheme.colors.primary)
@@ -212,7 +213,7 @@ fun AddNewExerciseDialog(viewModel: NewExerciseViewModel, setShowDialog: (Boolea
 
 @Composable
 fun EditExerciseDialog(
-    viewModel: NewExerciseViewModel,
+    viewModel: NewWorkoutViewModel,
     description: String,
     exerciseIndex: Int,
     setShowDialog: (Boolean) -> Unit
@@ -235,6 +236,7 @@ fun EditExerciseDialog(
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
+            modifier = Modifier.fillMaxWidth(0.9f).fillMaxHeight(0.6f),
             shape = RoundedCornerShape(8.dp),
             color = Color.White,
             border = BorderStroke(2.dp, MaterialTheme.colors.primary)
@@ -281,7 +283,7 @@ fun EditExerciseDialog(
 
 @Composable
 fun DeleteExerciseDialog(
-    viewModel: NewExerciseViewModel,
+    viewModel: NewWorkoutViewModel,
     description: String,
     exerciseIndex: Int,
     setShowDialog: (Boolean) -> Unit
@@ -298,6 +300,7 @@ fun DeleteExerciseDialog(
 
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
+            modifier = Modifier.fillMaxWidth(0.9f),
             shape = RoundedCornerShape(8.dp),
             color = Color.White,
             border = BorderStroke(2.dp, MaterialTheme.colors.primary)
@@ -332,7 +335,7 @@ fun DeleteExerciseDialog(
 
 
 @Composable
-fun ExerciseCard(viewModel: NewExerciseViewModel, description: String, index: Int) {
+fun ExerciseCard(viewModel: NewWorkoutViewModel, description: String, index: Int) {
     val TAG = "ExerciseCard"
 
     var showEditDialog by remember {
@@ -370,7 +373,7 @@ fun ExerciseCard(viewModel: NewExerciseViewModel, description: String, index: In
                 .fillMaxWidth()
                 .padding(10.dp), horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(horizontalArrangement = Arrangement.Start) {
+            Row(horizontalArrangement = Arrangement.Start, modifier = Modifier.fillMaxWidth(0.7f)) {
                 Text(text = description)
             }
             Row(horizontalArrangement = Arrangement.End) {

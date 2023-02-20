@@ -3,12 +3,10 @@ package com.example.gainsbookjc.viewmodels
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.*
+import com.example.gainsbookjc.*
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
-import com.example.gainsbookjc.getWorkoutWithExercisesByYearMonth
-import com.example.gainsbookjc.getYears
-import com.example.gainsbookjc.insertYear
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,11 +19,20 @@ class LogViewModel(context: Context) : ViewModel() {
     private val _workouts = MutableStateFlow(listOf<WorkoutWithExercises>())
     val workouts: StateFlow<List<WorkoutWithExercises>> get() = _workouts
 
-    fun getWorkoutsMVVM() {
+    fun getWorkouts() {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "Getting workouts in MVVM")
-            val initialList = getWorkoutWithExercisesByYearMonth(dao = dao, year = currentYear, month = currentMonth)
+            val initialList = getWorkoutWithExercisesByYearMonthFromDatabase(dao = dao, year = currentYear, month = currentMonth)
             _workouts.emit(initialList)
+        }
+    }
+
+    fun deleteWorkoutByID(workoutID: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            Log.d(TAG, "Attemping to delete workout with ID: $workoutID")
+            deleteWorkoutByIDFromDatabase(dao = dao, workoutID = workoutID)
+            deleteExercisesByWorkoutIDFromDatabase(dao = dao, workoutID = workoutID)
+            getWorkouts()
         }
     }
 
@@ -37,10 +44,10 @@ class LogViewModel(context: Context) : ViewModel() {
     private val _years = MutableStateFlow(listOf<Year>())
     val years: StateFlow<List<Year>> get() = _years
 
-    fun getYearsMVVM() {
+    fun getYears() {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "Getting years in MVVM")
-            val initialList = getYears(dao)
+            val initialList = getYearsFromDatabase(dao)
             _years.emit(initialList)
         }
     }
@@ -48,7 +55,7 @@ class LogViewModel(context: Context) : ViewModel() {
     fun insertYearMVVM(year: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "Inserting year: $year")
-            insertYear(dao = dao, year = year)
+            insertYearToDatabase(dao = dao, year = year)
         }
     }
 }
