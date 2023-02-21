@@ -103,8 +103,8 @@ fun NewWorkoutScreen(context: Context, navController: NavController) {
                 ExerciseCard(viewModel, exerciseWithIndex.description, exerciseWithIndex.index)
             }
         }
-
         AddNewExercise(viewModel)
+
 
         Row(
             horizontalArrangement = Arrangement.SpaceEvenly,

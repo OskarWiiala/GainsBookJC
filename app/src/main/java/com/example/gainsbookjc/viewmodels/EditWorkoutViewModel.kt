@@ -61,11 +61,27 @@ class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
         }
     }
 
-    fun addWorkout(exercises: List<ExerciseWithIndex>, day: Int, month: Int, year: Int) {
+
+    private suspend fun deleteWorkout(workoutID: Int) {
+        Log.d(TAG, "inside deleteWorkout")
+        dao.deleteWorkoutByID(workoutID = workoutID)
+        deleteExercises(workoutID = workoutID)
+        Log.d(TAG, "end of deleteWorkout")
+    }
+
+    private suspend fun deleteExercises(workoutID: Int) {
+        Log.d(TAG, "inside deleteExercise")
+        dao.deleteExercisesByWorkoutID(workoutID = workoutID)
+        Log.d(TAG, "after deleteExercise")
+    }
+
+    fun addWorkout(exercises: List<ExerciseWithIndex>, workoutID: Int, day: Int, month: Int, year: Int) {
         val TAG = "addWorkout"
         Log.d(TAG, "$day $month $year")
         viewModelScope.launch(Dispatchers.IO) {
-            val workout = Workout(workoutID = 0, day = day, month = month, year = year)
+            deleteWorkout(workoutID = workoutID)
+            Log.d(TAG, "after deleteWorkout")
+            val workout = Workout(workoutID = workoutID, day = day, month = month, year = year)
             val response = dao.insertWorkout(workout = workout)
 
             val exercisesModified: MutableList<Exercise> = mutableListOf()
