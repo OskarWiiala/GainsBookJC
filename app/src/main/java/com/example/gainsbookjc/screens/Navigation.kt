@@ -53,8 +53,9 @@ fun NavigationGraph(
             })
         ) { entry ->
             EditWorkoutScreen(
+                context = context,
                 navController = navController,
-                workoutID = entry.arguments?.getInt("workoutID")
+                workoutID = entry.arguments!!.getInt("workoutID")
             )
         }
 

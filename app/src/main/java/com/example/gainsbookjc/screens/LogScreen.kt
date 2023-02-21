@@ -226,7 +226,10 @@ fun WorkoutCard(item: WorkoutWithExercises, navController: NavController, viewMo
                         contentDescription = "Delete workout"
                     )
                 }
-                IconButton(onClick = { Log.d("edit", "clicked edit") }) {
+                IconButton(onClick = {
+                    Log.d("edit", "clicked edit")
+                    navController.navigate(WorkoutScreens.EditWorkoutScreen.withArgs(item.workout.workoutID))
+                }) {
                     Icon(
                         modifier = Modifier
                             .height(32.dp)
