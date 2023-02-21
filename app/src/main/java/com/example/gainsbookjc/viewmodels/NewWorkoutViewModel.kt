@@ -8,8 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Exercise
 import com.example.gainsbookjc.database.entities.Workout
-import com.example.gainsbookjc.insertExerciseToDatabase
-import com.example.gainsbookjc.insertWorkoutToDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +33,7 @@ class NewWorkoutViewModel(context: Context) : ViewModel() {
         Log.d(TAG, "$day $month $year")
         viewModelScope.launch(Dispatchers.IO) {
             val workout = Workout(workoutID = 0, day = day, month = month, year = year)
-            val response = insertWorkoutToDatabase(dao = dao, workout = workout)
+            val response = dao.insertWorkout(workout = workout)
 
             val exercisesModified: MutableList<Exercise> = mutableListOf()
             exercises.forEach { exerciseWithIndex ->
@@ -50,7 +48,7 @@ class NewWorkoutViewModel(context: Context) : ViewModel() {
                     )
                 )
             }
-            exercisesModified.forEach { insertExerciseToDatabase(dao = dao, exercise = it) }
+            exercisesModified.forEach { dao.insertExercise(exercise = it) }
         }
     }
 }

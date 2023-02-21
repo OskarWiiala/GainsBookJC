@@ -19,7 +19,7 @@ fun NavigationGraph(
 ) {
     NavHost(navController, startDestination = BottomNavItem.LogScreen.screen_route) {
         composable(BottomNavItem.LogScreen.screen_route) {
-            LogScreen(lifecycleScope, context, navController)
+            LogScreen(context, navController)
         }
         composable(BottomNavItem.StatsScreen.screen_route) {
             StatsScreen()

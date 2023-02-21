@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
-import com.example.gainsbookjc.getWorkoutByIDFromDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +22,7 @@ class ViewExerciseViewModel(context: Context) : ViewModel() {
     fun getWorkout(workoutID: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "init")
-            val response = getWorkoutByIDFromDatabase(dao = dao, workoutID = workoutID)
+            val response = dao.getWorkoutWithExercisesByID(workoutID = workoutID)
             Log.d(TAG, "response: $response")
             _workout.emit(response)
         }

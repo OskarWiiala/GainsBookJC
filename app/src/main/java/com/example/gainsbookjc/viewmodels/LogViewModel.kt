@@ -3,7 +3,6 @@ package com.example.gainsbookjc.viewmodels
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.*
-import com.example.gainsbookjc.*
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
@@ -22,7 +21,8 @@ class LogViewModel(context: Context) : ViewModel() {
     fun getWorkouts() {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "Getting workouts in MVVM")
-            val initialList = getWorkoutWithExercisesByYearMonthFromDatabase(dao = dao, year = currentYear, month = currentMonth)
+
+            val initialList = dao.getWorkoutWithExercisesByYearMonth(year = currentYear, month = currentMonth)
             _workouts.emit(initialList)
         }
     }
@@ -30,8 +30,8 @@ class LogViewModel(context: Context) : ViewModel() {
     fun deleteWorkoutByID(workoutID: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "Attemping to delete workout with ID: $workoutID")
-            deleteWorkoutByIDFromDatabase(dao = dao, workoutID = workoutID)
-            deleteExercisesByWorkoutIDFromDatabase(dao = dao, workoutID = workoutID)
+            dao.deleteWorkoutByID(workoutID = workoutID)
+            dao.deleteExercisesByWorkoutID(workoutID = workoutID)
             getWorkouts()
         }
     }
@@ -47,15 +47,17 @@ class LogViewModel(context: Context) : ViewModel() {
     fun getYears() {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "Getting years in MVVM")
-            val initialList = getYearsFromDatabase(dao)
+            val initialList = dao.getYears()
             _years.emit(initialList)
         }
     }
 
-    fun insertYearMVVM(year: Int) {
+    fun insertYear(year: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             Log.d(TAG, "Inserting year: $year")
-            insertYearToDatabase(dao = dao, year = year)
+            dao.insertYear(year = Year(year))
+            val years = dao.getYears()
+            _years.emit(years)
         }
     }
 }

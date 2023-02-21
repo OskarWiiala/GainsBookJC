@@ -29,26 +29,23 @@ import com.example.gainsbookjc.R
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
-import com.example.gainsbookjc.viewmodels.ExerciseWithIndex
 import com.example.gainsbookjc.viewmodels.LogViewModel
-import com.example.gainsbookjc.viewmodels.NewWorkoutViewModel
 import com.example.gainsbookjc.viewmodels.logViewModelFactory
 import java.util.Calendar
 
 @Composable
 fun LogScreen(
-    lifecycleScope: LifecycleCoroutineScope,
     context: Context,
     navController: NavController
 ) {
     val TAG = "LogScreen"
-    val dao = AppDatabase.getInstance(context).appDao
     val viewModel: LogViewModel = viewModel(factory = logViewModelFactory {
         LogViewModel(context)
     })
     viewModel.setCurrentYear(Calendar.getInstance().get(Calendar.YEAR))
     viewModel.setCurrentMonth(Calendar.getInstance().get(Calendar.MONTH) + 1)
 
+    // Top bar elements
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
@@ -66,14 +63,14 @@ fun LogScreen(
             Spacer(modifier = Modifier.width(10.dp))
         }
 
-        Row() {
+        // List related elements
+        Row(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
             WorkoutList(viewModel = viewModel, navController = navController)
             FloatingActionButton(
                 modifier = Modifier
                     .align(Alignment.Bottom)
                     .padding(bottom = 16.dp, start = 16.dp),
                 onClick = {
-                    // navController.navigate(WorkoutScreens.NewWorkoutScreen.withArgs("argumentgoeshere"))
                     navController.navigate(WorkoutScreens.NewWorkoutScreen.screen_route)
                 },
                 contentColor = Color.White,
@@ -132,7 +129,7 @@ fun NewYearDialog(viewModel: LogViewModel, setShowDialog: (Boolean) -> Unit) {
                     Button(onClick = {
                         val input = textFieldState.toIntOrNull()
                         if (input != null) {
-                            viewModel.insertYearMVVM(input)
+                            viewModel.insertYear(input)
                             setShowDialog(false)
                         } else {
                             Log.d(TAG, "Input not integer!")
@@ -173,9 +170,12 @@ fun WorkoutCard(item: WorkoutWithExercises, navController: NavController, viewMo
     }
 
     if (showDeleteDialog) {
-        DeleteWorkoutDialog(viewModel = viewModel, workoutID = item.workout.workoutID, setShowDialog = {
-            showDeleteDialog = it
-        })
+        DeleteWorkoutDialog(
+            viewModel = viewModel,
+            workoutID = item.workout.workoutID,
+            setShowDialog = {
+                showDeleteDialog = it
+            })
     }
 
     Card(
@@ -343,7 +343,7 @@ fun SelectYearDropdown(viewModel: LogViewModel) {
     val TAG = "SelectYearDropdown"
 
     viewModel.getYears()
-    val list by viewModel.years.collectAsState()
+    val years by viewModel.years.collectAsState()
 
     var expanded by remember {
         mutableStateOf(false)
@@ -364,9 +364,15 @@ fun SelectYearDropdown(viewModel: LogViewModel) {
                     painter = painterResource(id = R.drawable.down_icon_24),
                     contentDescription = "Dropdown"
                 )
-                if (list.contains(currentYear)) {
-                    val yearIndex = list.indexOf(currentYear)
-                    Text(text = "${list[yearIndex].year}")
+                if (years.contains(currentYear)) {
+                    val yearIndex = years.indexOf(currentYear)
+                    Text(text = "${years[yearIndex].year}")
+                } else if (years.isEmpty()) {
+                    viewModel.insertYear(Calendar.getInstance().get(Calendar.YEAR))
+                    if (years.contains(currentYear)) {
+                        val yearIndex = years.indexOf(currentYear)
+                        Text(text = "${years[yearIndex].year}")
+                    }
                 }
 
             }
@@ -380,7 +386,7 @@ fun SelectYearDropdown(viewModel: LogViewModel) {
             }
         ) {
             // adding items
-            list.forEachIndexed { itemIndex, itemValue ->
+            years.forEachIndexed { itemIndex, itemValue ->
                 DropdownMenuItem(
                     onClick = {
                         Log.d("click", "Year dropdown selected: $itemValue")
@@ -397,3 +403,4 @@ fun SelectYearDropdown(viewModel: LogViewModel) {
         }
     }
 }
+
