@@ -29,6 +29,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gainsbookjc.screens.NavigationGraph
 import com.example.gainsbookjc.ui.theme.GainsBookJCTheme
 
+
+/**
+ * @author Oskar Wiiala
+ * Main activity of the app
+ *
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,55 +43,77 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             GainsBookJCTheme {
-                MainScreenView(fontFamily, lifecycleScope = lifecycleScope, context = applicationContext)
+                MainScreenView(fontFamily = fontFamily, context = applicationContext)
             }
         }
     }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param fontFamily
+ * @param context
+ * Hosts top app bar and bottom naviagtion
+ */
 @Composable
-fun MainScreenView(fontFamily: FontFamily, lifecycleScope: LifecycleCoroutineScope, context: Context) {
+fun MainScreenView(fontFamily: FontFamily, context: Context) {
     val navController = rememberNavController()
     Scaffold(
-        topBar = {
-            Text(
-                text = buildAnnotatedString {
-                    withStyle(
-                        style = SpanStyle(
-                            fontSize = 40.sp,
-                            fontFamily = fontFamily
-                        )
-                    ) {
-                        append("G")
-                    }
-                    append("ains")
-                    withStyle(
-                        style = SpanStyle(
-                            fontSize = 30.sp,
-                            fontFamily = fontFamily
-                        )
-                    ) {
-                        append("B")
-                    }
-                    append("ook")
-                },
-                textAlign = TextAlign.Center,
-                color = Color.White,
-                fontSize = 24.sp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .background(MaterialTheme.colors.primary)
-            )
-        },
+        // Title of the app
+        topBar = { TopAppBar(fontFamily = fontFamily) },
+        // Bottom navigation
         bottomBar = { BottomNavigation(navController = navController) }
     ) {
         Column(modifier = Modifier.padding(it)) {
-            NavigationGraph(navController = navController, lifecycleScope = lifecycleScope, context)
+            NavigationGraph(navController = navController, context = context)
         }
     }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param fontFamily
+ * Top app bar
+ */
+@Composable
+fun TopAppBar(fontFamily: FontFamily) {
+    // Annotated string to showcase ease of use in Jetpack Compose
+    Text(
+        text = buildAnnotatedString {
+            withStyle(
+                style = SpanStyle(
+                    fontSize = 40.sp,
+                    fontFamily = fontFamily
+                )
+            ) {
+                append("G")
+            }
+            append("ains")
+            withStyle(
+                style = SpanStyle(
+                    fontSize = 30.sp,
+                    fontFamily = fontFamily
+                )
+            ) {
+                append("B")
+            }
+            append("ook")
+        },
+        textAlign = TextAlign.Center,
+        color = Color.White,
+        fontSize = 24.sp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .background(MaterialTheme.colors.primary)
+    )
+}
+
+/**
+ * @author Oskar Wiiala
+ * @param navController
+ * This composable hosts the bottom navigation and its items
+ */
 @Composable
 fun BottomNavigation(navController: NavController) {
     val items = listOf(
@@ -94,9 +122,12 @@ fun BottomNavigation(navController: NavController) {
         BottomNavItem.TimerScreen,
         BottomNavItem.ProfileScreen
     )
+
+    // Collects the navigation back stack entry as state
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    BottomNavigation() {
+
+    BottomNavigation {
         items.forEach { item ->
             BottomNavigationItem(
                 icon = { Icon(painterResource(id = item.icon), contentDescription = item.title) },
@@ -110,7 +141,6 @@ fun BottomNavigation(navController: NavController) {
                 selected = currentRoute == item.screen_route,
                 onClick = {
                     navController.navigate(item.screen_route) {
-
                         navController.graph.startDestinationRoute?.let { screen_route ->
                             popUpTo(screen_route) {
                                 saveState = true

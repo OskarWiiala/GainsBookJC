@@ -18,14 +18,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.gainsbookjc.BottomNavItem
-import com.example.gainsbookjc.viewmodels.ViewExerciseViewModel
+import com.example.gainsbookjc.viewmodels.ViewWorkoutViewModel
 import com.example.gainsbookjc.viewmodels.viewExerciseViewModelFactory
 
 @Composable
 fun ViewWorkoutScreen(navController: NavController, context: Context, workoutID: Int) {
     val TAG = "ViewWorkoutScreen"
-    val viewModel: ViewExerciseViewModel = viewModel(factory = viewExerciseViewModelFactory {
-        ViewExerciseViewModel(context)
+    val viewModel: ViewWorkoutViewModel = viewModel(factory = viewExerciseViewModelFactory {
+        ViewWorkoutViewModel(context)
     })
     Column(
         modifier = Modifier.fillMaxSize(),

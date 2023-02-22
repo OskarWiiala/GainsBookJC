@@ -1,7 +1,6 @@
 package com.example.gainsbookjc.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.*
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Year
@@ -11,6 +10,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * @author Oskar Wiiala
+ * @param context
+ * View model for LogScreen
+ */
 class LogViewModel(context: Context) : ViewModel() {
     val dao = AppDatabase.getInstance(context).appDao
     val TAG = "LogViewModel"
@@ -18,18 +22,17 @@ class LogViewModel(context: Context) : ViewModel() {
     private val _workouts = MutableStateFlow(listOf<WorkoutWithExercises>())
     val workouts: StateFlow<List<WorkoutWithExercises>> get() = _workouts
 
+    // Gets workout from database and updates _workouts
     fun getWorkouts() {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "Getting workouts in MVVM")
-
             val initialList = dao.getWorkoutWithExercisesByYearMonth(year = currentYear, month = currentMonth)
             _workouts.emit(initialList)
         }
     }
 
+    // Deletes workout and exercises from database based on ID and updates view model
     fun deleteWorkoutByID(workoutID: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "Attemping to delete workout with ID: $workoutID")
             dao.deleteWorkoutByID(workoutID = workoutID)
             dao.deleteExercisesByWorkoutID(workoutID = workoutID)
             getWorkouts()
@@ -44,17 +47,17 @@ class LogViewModel(context: Context) : ViewModel() {
     private val _years = MutableStateFlow(listOf<Year>())
     val years: StateFlow<List<Year>> get() = _years
 
+    // Gets years from database and updates _years
     fun getYears() {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "Getting years in MVVM")
             val initialList = dao.getYears()
             _years.emit(initialList)
         }
     }
 
+    // Inserts a year into database, gets years from database and updates _years
     fun insertYear(year: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "Inserting year: $year")
             dao.insertYear(year = Year(year))
             val years = dao.getYears()
             _years.emit(years)

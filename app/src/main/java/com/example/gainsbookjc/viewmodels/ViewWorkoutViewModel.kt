@@ -12,18 +12,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ViewExerciseViewModel(context: Context) : ViewModel() {
+/**
+ * @author Oskar Wiiala
+ * @param context
+ * View model for ViewWorkoutScreeb
+ */
+class ViewWorkoutViewModel(context: Context) : ViewModel() {
     val dao = AppDatabase.getInstance(context).appDao
     val TAG = "ViewExerciseViewModel"
 
     private val _workout = MutableStateFlow(listOf<WorkoutWithExercises>())
     val workout: StateFlow<List<WorkoutWithExercises>> get() = _workout
 
+    // Gets the workout from database based on workout ID and updates _workout
     fun getWorkout(workoutID: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "init")
             val response = dao.getWorkoutWithExercisesByID(workoutID = workoutID)
-            Log.d(TAG, "response: $response")
             _workout.emit(response)
         }
     }

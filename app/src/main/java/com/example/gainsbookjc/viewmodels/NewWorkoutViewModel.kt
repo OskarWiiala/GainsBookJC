@@ -13,6 +13,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * @author Oskar Wiiala
+ * @param context
+ * ViewModel for NewWorkoutScreen. Handles the editing, adding and deletion of exercises
+ * of a selected workout. Also handles changing the date of a workout
+ */
 class NewWorkoutViewModel(context: Context) : ViewModel() {
     val dao = AppDatabase.getInstance(context).appDao
     val TAG = "NewExerciseViewModel"
@@ -28,16 +34,18 @@ class NewWorkoutViewModel(context: Context) : ViewModel() {
         }
     }
 
+    // Adds workout to database
     fun addWorkout(exercises: List<ExerciseWithIndex>, day: Int, month: Int, year: Int) {
         val TAG = "addWorkout"
-        Log.d(TAG, "$day $month $year")
         viewModelScope.launch(Dispatchers.IO) {
+            // Create workout and then insert it to the database
             val workout = Workout(workoutID = 0, day = day, month = month, year = year)
             val response = dao.insertWorkout(workout = workout)
 
-            val exercisesModified: MutableList<Exercise> = mutableListOf()
+            // Converts a list of ExerciseWithIndex to Exercise
+            val exercisesConverted: MutableList<Exercise> = mutableListOf()
             exercises.forEach { exerciseWithIndex ->
-                exercisesModified.add(
+                exercisesConverted.add(
                     Exercise(
                         exerciseID = 0,
                         workoutID = response.toInt(),
@@ -48,7 +56,8 @@ class NewWorkoutViewModel(context: Context) : ViewModel() {
                     )
                 )
             }
-            exercisesModified.forEach { dao.insertExercise(exercise = it) }
+            // inserts converted exercises to database
+            exercisesConverted.forEach { dao.insertExercise(exercise = it) }
         }
     }
 }

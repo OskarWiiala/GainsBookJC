@@ -2,7 +2,6 @@ package com.example.gainsbookjc.screens
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -11,13 +10,19 @@ import androidx.navigation.navArgument
 import com.example.gainsbookjc.BottomNavItem
 import com.example.gainsbookjc.WorkoutScreens
 
+/**
+ * @author Oskar Wiiala
+ * @param navController
+ * @param context
+ * This composable hosts all navigation, such as the bottom navigation
+ */
 @Composable
 fun NavigationGraph(
     navController: NavHostController,
-    lifecycleScope: LifecycleCoroutineScope,
     context: Context
 ) {
     NavHost(navController, startDestination = BottomNavItem.LogScreen.screen_route) {
+        // Bottom navigation
         composable(BottomNavItem.LogScreen.screen_route) {
             LogScreen(context, navController)
         }
@@ -31,6 +36,7 @@ fun NavigationGraph(
             ProfileScreen()
         }
 
+        // ViewWorkoutScreen
         composable(
             route = WorkoutScreens.ViewWorkoutScreen.screen_route + "/{workoutID}", // to add multiple args, just add another /{variable}. optional arguments ?test={test}
             arguments = listOf(navArgument("workoutID") {
@@ -45,6 +51,7 @@ fun NavigationGraph(
             )
         }
 
+        // EditWorkoutScreen
         composable(
             route = WorkoutScreens.EditWorkoutScreen.screen_route + "/{workoutID}", // to add multiple args, just add another /{variable}. optional arguments ?test={test}
             arguments = listOf(navArgument("workoutID") {
@@ -59,6 +66,7 @@ fun NavigationGraph(
             )
         }
 
+        // NewWorkoutScreen
         composable(
             route = WorkoutScreens.NewWorkoutScreen.screen_route,
         ) {

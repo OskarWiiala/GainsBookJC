@@ -13,6 +13,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * @author Oskar Wiiala
+ * @param context
+ * @param workoutID the identifier of an individual workout
+ * ViewModel for EditWorkoutScreen. Handles the editing, adding and deletion of exercises
+ * of a selected workout. Also handles changing the date of a workout
+ */
+
 class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
     val dao = AppDatabase.getInstance(context).appDao
     val TAG = "EditExerciseViewModel"
@@ -25,9 +33,9 @@ class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "init")
+            // Get workout based on workoutID, which will later be loaded in the UI
             val response = dao.getWorkoutWithExercisesByID(workoutID = workoutID)
-            Log.d(TAG, "response: $response")
+            // Converts response from WorkoutWithExercises to ExerciseWithIndex
             val convertedList: MutableList<ExerciseWithIndex> = mutableListOf()
             if (response.isNotEmpty()) {
                 var index = 1
@@ -45,14 +53,13 @@ class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
                 val month = response.first().workout.month
                 val year = response.first().workout.year
                 val date = WorkoutDate(day = day, month = month, year = year)
-                Log.d(TAG, "date: $date")
+                // Date is used to display the date of the workout
                 _date.emit(date)
-                Log.d(TAG, "date after emit: ${_date.value}")
-
             }
         }
     }
 
+    // Adds exercises to the viewModel
     fun addExercises(exercises: List<ExerciseWithIndex>) {
         Log.d(TAG, "addExercise")
         viewModelScope.launch {
@@ -62,31 +69,32 @@ class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
     }
 
 
+    // Deletes workout from database based on workoutID
     private suspend fun deleteWorkout(workoutID: Int) {
-        Log.d(TAG, "inside deleteWorkout")
         dao.deleteWorkoutByID(workoutID = workoutID)
         deleteExercises(workoutID = workoutID)
-        Log.d(TAG, "end of deleteWorkout")
     }
 
+    // Deletes exercises from database based on workoutID
     private suspend fun deleteExercises(workoutID: Int) {
-        Log.d(TAG, "inside deleteExercise")
         dao.deleteExercisesByWorkoutID(workoutID = workoutID)
-        Log.d(TAG, "after deleteExercise")
     }
 
+    // Adds workout to database step by step
+    // First, the deletion of the workout and its exercises from database
+    // Then, inserting the new version of that workout and its exercises to database
+    // The workoutID is saved and used to determine the newly created workout
+    // Update could have also been used, but I decided to go with delete and then insert
     fun addWorkout(exercises: List<ExerciseWithIndex>, workoutID: Int, day: Int, month: Int, year: Int) {
         val TAG = "addWorkout"
-        Log.d(TAG, "$day $month $year")
         viewModelScope.launch(Dispatchers.IO) {
             deleteWorkout(workoutID = workoutID)
-            Log.d(TAG, "after deleteWorkout")
             val workout = Workout(workoutID = workoutID, day = day, month = month, year = year)
             val response = dao.insertWorkout(workout = workout)
 
-            val exercisesModified: MutableList<Exercise> = mutableListOf()
+            val exercisesConverted: MutableList<Exercise> = mutableListOf()
             exercises.forEach { exerciseWithIndex ->
-                exercisesModified.add(
+                exercisesConverted.add(
                     Exercise(
                         exerciseID = 0,
                         workoutID = response.toInt(),
@@ -97,21 +105,21 @@ class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
                     )
                 )
             }
-            exercisesModified.forEach { dao.insertExercise(exercise = it) }
+            exercisesConverted.forEach { dao.insertExercise(exercise = it) }
         }
     }
 
+    // Sets date to viewModel
     fun setDate(date: WorkoutDate) {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "setting date")
             _date.emit(date)
-            Log.d(TAG, "date set: ${_date.value}")
         }
     }
 }
 
 data class WorkoutDate(val day: Int, val month: Int, val year: Int)
 
+// ViewModel factory
 inline fun <VM : ViewModel> editExerciseViewModelFactory(crossinline f: () -> VM) =
     object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T = f() as T
