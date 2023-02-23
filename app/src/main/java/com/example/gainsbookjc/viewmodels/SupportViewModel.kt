@@ -5,25 +5,20 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.gainsbookjc.ExerciseWithIndex
+import com.example.gainsbookjc.WorkoutDate
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Exercise
 import com.example.gainsbookjc.database.entities.Workout
+import com.example.gainsbookjc.database.entities.Year
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-/**
- * @author Oskar Wiiala
- * @param context
- * @param workoutID the identifier of an individual workout
- * ViewModel for EditWorkoutScreen. Handles the editing, adding and deletion of exercises
- * of a selected workout. Also handles changing the date of a workout
- */
-
-class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
+class SupportViewModel(context: Context) : ViewModel() {
+    val TAG = "SupportViewModel"
     val dao = AppDatabase.getInstance(context).appDao
-    val TAG = "EditExerciseViewModel"
 
     private val _exercises = MutableStateFlow(listOf<ExerciseWithIndex>())
     val exercises: StateFlow<List<ExerciseWithIndex>> get() = _exercises
@@ -31,8 +26,26 @@ class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
     private val _date = MutableStateFlow<WorkoutDate>(WorkoutDate(0,0,0))
     val date: StateFlow<WorkoutDate> get() = _date
 
-    init {
+    private val _years = MutableStateFlow(listOf<Year>())
+    val years: StateFlow<List<Year>> get() = _years
+
+    private val _currentYear = MutableStateFlow<Int>(0)
+    val currentYear: StateFlow<Int> get() = _currentYear
+
+    private val _currentMonth = MutableStateFlow<Int>(0)
+    val currentMonth: StateFlow<Int> get() = _currentMonth
+
+    fun addExercises(exercises: List<ExerciseWithIndex>) {
+        Log.d(TAG, "addExercise")
+        viewModelScope.launch {
+            Log.d(TAG, "emitting exercises")
+            _exercises.emit(exercises)
+        }
+    }
+
+    fun getWorkoutByID(workoutID: Int) {
         viewModelScope.launch(Dispatchers.IO) {
+            Log.d(TAG, "getWorkoutByID")
             // Get workout based on workoutID, which will later be loaded in the UI
             val response = dao.getWorkoutWithExercisesByID(workoutID = workoutID)
             // Converts response from WorkoutWithExercises to ExerciseWithIndex
@@ -54,20 +67,10 @@ class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
                 val year = response.first().workout.year
                 val date = WorkoutDate(day = day, month = month, year = year)
                 // Date is used to display the date of the workout
-                _date.emit(date)
+                setDate(date)
             }
         }
     }
-
-    // Adds exercises to the viewModel
-    fun addExercises(exercises: List<ExerciseWithIndex>) {
-        Log.d(TAG, "addExercise")
-        viewModelScope.launch {
-            Log.d(TAG, "emitting exercises")
-            _exercises.emit(exercises)
-        }
-    }
-
 
     // Deletes workout from database based on workoutID
     private suspend fun deleteWorkout(workoutID: Int) {
@@ -80,18 +83,18 @@ class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
         dao.deleteExercisesByWorkoutID(workoutID = workoutID)
     }
 
-    // Adds workout to database step by step
-    // First, the deletion of the workout and its exercises from database
-    // Then, inserting the new version of that workout and its exercises to database
-    // The workoutID is saved and used to determine the newly created workout
-    // Update could have also been used, but I decided to go with delete and then insert
-    fun addWorkout(exercises: List<ExerciseWithIndex>, workoutID: Int, day: Int, month: Int, year: Int) {
+    // Adds workout to database
+    fun addWorkout(exercises: List<ExerciseWithIndex>, workoutID: Int = 0, day: Int, month: Int, year: Int, type: String = "normal") {
         val TAG = "addWorkout"
         viewModelScope.launch(Dispatchers.IO) {
-            deleteWorkout(workoutID = workoutID)
+            if (type == "delete") {
+                deleteWorkout(workoutID)
+            }
+            // Create workout and then insert it to the database
             val workout = Workout(workoutID = workoutID, day = day, month = month, year = year)
             val response = dao.insertWorkout(workout = workout)
 
+            // Converts a list of ExerciseWithIndex to Exercise
             val exercisesConverted: MutableList<Exercise> = mutableListOf()
             exercises.forEach { exerciseWithIndex ->
                 exercisesConverted.add(
@@ -105,22 +108,47 @@ class EditWorkoutViewModel(context: Context, workoutID: Int) : ViewModel() {
                     )
                 )
             }
+            // inserts converted exercises to database
             exercisesConverted.forEach { dao.insertExercise(exercise = it) }
         }
     }
 
-    // Sets date to viewModel
     fun setDate(date: WorkoutDate) {
         viewModelScope.launch(Dispatchers.IO) {
             _date.emit(date)
         }
     }
+
+    // Gets years from database and updates _years
+    fun getYears() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val years = dao.getYears()
+            _years.emit(years)
+        }
+    }
+
+    // Inserts a year into database, gets years from database and updates _years
+    fun insertYear(year: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dao.insertYear(year = Year(year))
+            getYears()
+        }
+    }
+
+    fun setCurrentYear(year: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _currentYear.emit(year)
+        }
+    }
+
+    fun setCurrentMonth(month: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _currentMonth.emit(month)
+        }
+    }
 }
 
-data class WorkoutDate(val day: Int, val month: Int, val year: Int)
-
-// ViewModel factory
-inline fun <VM : ViewModel> editExerciseViewModelFactory(crossinline f: () -> VM) =
+inline fun <VM : ViewModel> supportViewModelFactory(crossinline f: () -> VM) =
     object : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T = f() as T
     }

@@ -24,10 +24,10 @@ fun NavigationGraph(
     NavHost(navController, startDestination = BottomNavItem.LogScreen.screen_route) {
         // Bottom navigation
         composable(BottomNavItem.LogScreen.screen_route) {
-            LogScreen(context, navController)
+            LogScreen(context = context, navController = navController)
         }
         composable(BottomNavItem.StatsScreen.screen_route) {
-            StatsScreen()
+            StatsScreen(context = context, navController = navController)
         }
         composable(BottomNavItem.TimerScreen.screen_route) {
             TimerScreen()

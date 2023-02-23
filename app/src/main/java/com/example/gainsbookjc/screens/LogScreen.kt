@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,19 +15,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.gainsbookjc.WorkoutScreens
+import com.example.gainsbookjc.*
 import com.example.gainsbookjc.R
-import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
 import com.example.gainsbookjc.viewmodels.LogViewModel
+import com.example.gainsbookjc.viewmodels.SupportViewModel
 import com.example.gainsbookjc.viewmodels.logViewModelFactory
+import com.example.gainsbookjc.viewmodels.supportViewModelFactory
 import java.util.Calendar
 
 /**
@@ -46,16 +45,19 @@ fun LogScreen(
     navController: NavController
 ) {
     val TAG = "LogScreen"
-    val viewModel: LogViewModel = viewModel(factory = logViewModelFactory {
+    val supportViewModel: SupportViewModel = viewModel(factory = supportViewModelFactory {
+        SupportViewModel(context)
+    })
+    val logViewModel: LogViewModel = viewModel(factory = logViewModelFactory {
         LogViewModel(context)
     })
-    
-    // Initializes month and year to be current month and year
-    viewModel.setCurrentYear(Calendar.getInstance().get(Calendar.YEAR))
-    viewModel.setCurrentMonth(Calendar.getInstance().get(Calendar.MONTH) + 1)
 
-    // Top bar elements
+    // Initializes month and year to be current month and year
+    supportViewModel.setCurrentYear(Calendar.getInstance().get(Calendar.YEAR))
+    supportViewModel.setCurrentMonth(Calendar.getInstance().get(Calendar.MONTH) + 1)
+
     Column(modifier = Modifier.fillMaxSize()) {
+        // Top bar elements
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -63,19 +65,21 @@ fun LogScreen(
             horizontalArrangement = Arrangement.End
         ) {
             // + new year button
-            AddNewYear(viewModel = viewModel)
+            AddNewYearButton(supportViewModel = supportViewModel)
             Spacer(modifier = Modifier.width(10.dp))
-            SelectMonthDropdown(viewModel)
+            SelectMonthDropdown(supportViewModel = supportViewModel, logViewModel = logViewModel, screen = "LogScreen")
             Spacer(modifier = Modifier.width(10.dp))
-            SelectYearDropdown(viewModel)
+            SelectYearDropdown(supportViewModel = supportViewModel, logViewModel = logViewModel, screen = "LogScreen")
             Spacer(modifier = Modifier.width(10.dp))
         }
 
         // List related elements
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()) {
-            WorkoutList(viewModel = viewModel, navController = navController)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+        ) {
+            WorkoutList(logViewModel = logViewModel, supportViewModel = supportViewModel, navController = navController)
             FloatingActionButton(
                 modifier = Modifier
                     .align(Alignment.Bottom)
@@ -93,111 +97,30 @@ fun LogScreen(
 
 /**
  * @author Oskar Wiiala
- * @param viewModel
- * This composable is the + new year button seen in the UI
- * It handles displaying the add new year dialog
- */
-@Composable
-fun AddNewYear(viewModel: LogViewModel) {
-    
-    // handles showing/closing add new year dialog
-    var showDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showDialog) {
-        NewYearDialog(viewModel = viewModel, setShowDialog = {
-            showDialog = it
-        })
-    }
-
-    Button(
-        onClick = { showDialog = true },
-        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
-        contentPadding = PaddingValues(10.dp)
-    ) {
-        Text(text = "+ new year")
-    }
-}
-
-/**
- * @author Oskar Wiiala
- * @param viewModel
- * @param setShowDialog callback to close dialog
- * This dialog handles user input in an editable TextField
- * and calls the view model to add the new year to database
- */
-@Composable
-fun NewYearDialog(viewModel: LogViewModel, setShowDialog: (Boolean) -> Unit) {
-    val TAG = "NewYearDialog"
-    
-    // handles storing user input
-    var textFieldState by remember {
-        mutableStateOf("")
-    }
-    
-    // Main content
-    Dialog(onDismissRequest = { setShowDialog(false) }) {
-        Surface(
-            shape = RoundedCornerShape(8.dp),
-            color = Color.White,
-            border = BorderStroke(2.dp, MaterialTheme.colors.primary)
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = "Add new year")
-                Spacer(modifier = Modifier.height(16.dp))
-                TextField(
-                    value = textFieldState,
-                    onValueChange = { textFieldState = it },
-                    label = { Text(text = "Enter a new year here") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    // OK button
-                    Button(onClick = {
-                        // Only accepts integers
-                        val input = textFieldState.toIntOrNull()
-                        if (input != null) {
-                            // calls viewModel to add new year to database and update view model
-                            viewModel.insertYear(input)
-                            setShowDialog(false)
-                        } else {
-                            Log.d(TAG, "Input not integer!")
-                        }
-                    }) {
-                        Text(text = "Ok")
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(onClick = { setShowDialog(false) }) {
-                        Text(text = "Cancel")
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * @author Oskar Wiiala
- * @param viewModel
+ * @param logViewModel
  * @param navController
  * This composable handles displaying a list of WorkoutCards
  */
 @Composable
-fun WorkoutList(viewModel: LogViewModel, navController: NavController) {
+fun WorkoutList(logViewModel: LogViewModel, supportViewModel: SupportViewModel, navController: NavController) {
+    val currentYear by supportViewModel.currentYear.collectAsState()
+    val currentMonth by supportViewModel.currentMonth.collectAsState()
     // Calls view model to get workouts from database and update view model
-    viewModel.getWorkouts()
+    logViewModel.getWorkoutsByYearMonth(year = currentYear, month = currentMonth)
     // Collects workouts as state from view model
-    val workouts by viewModel.workouts.collectAsState()
-    
+    val workouts by logViewModel.workouts.collectAsState()
+
     // The actual list
     LazyColumn(modifier = Modifier.fillMaxWidth(0.75f)) {
         itemsIndexed(
             workouts
         ) { index, item ->
-            WorkoutCard(workoutWithExercises = item, navController = navController, viewModel = viewModel)
+            WorkoutCard(
+                workoutWithExercises = item,
+                navController = navController,
+                logViewModel = logViewModel,
+                supportViewModel = supportViewModel
+            )
         }
     }
 }
@@ -206,7 +129,7 @@ fun WorkoutList(viewModel: LogViewModel, navController: NavController) {
  * @author Oskar Wiiala
  * @param workoutWithExercises the workout including its exercises
  * @param navController
- * @param viewModel
+ * @param logViewModel
  * This composable is the UI for an individual workout in the list of workouts
  * User navigates to ViewWorkoutScreen by clicking on the card, hence the OptIn()
  * User can delete the workout by clicking on the trash can IconButton
@@ -214,7 +137,12 @@ fun WorkoutList(viewModel: LogViewModel, navController: NavController) {
  */
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun WorkoutCard(workoutWithExercises: WorkoutWithExercises, navController: NavController, viewModel: LogViewModel) {
+fun WorkoutCard(
+    workoutWithExercises: WorkoutWithExercises,
+    navController: NavController,
+    logViewModel: LogViewModel,
+    supportViewModel: SupportViewModel
+) {
     val TAG = "WorkoutCard"
 
     // Handles closing/showing deletion dialog
@@ -224,7 +152,8 @@ fun WorkoutCard(workoutWithExercises: WorkoutWithExercises, navController: NavCo
 
     if (showDeleteDialog) {
         DeleteWorkoutDialog(
-            viewModel = viewModel,
+            logViewModel = logViewModel,
+            supportViewModel = supportViewModel,
             workoutID = workoutWithExercises.workout.workoutID,
             setShowDialog = {
                 showDeleteDialog = it
@@ -282,7 +211,11 @@ fun WorkoutCard(workoutWithExercises: WorkoutWithExercises, navController: NavCo
                 }
                 IconButton(onClick = {
                     Log.d("edit", "clicked edit")
-                    navController.navigate(WorkoutScreens.EditWorkoutScreen.withArgs(workoutWithExercises.workout.workoutID))
+                    navController.navigate(
+                        WorkoutScreens.EditWorkoutScreen.withArgs(
+                            workoutWithExercises.workout.workoutID
+                        )
+                    )
                 }) {
                     Icon(
                         modifier = Modifier
@@ -299,18 +232,22 @@ fun WorkoutCard(workoutWithExercises: WorkoutWithExercises, navController: NavCo
 
 /**
  * @author Oskar Wiiala
- * @param viewModel
+ * @param logViewModel
  * @param workoutID identifier of the individual workout
  * @param setShowDialog handles closing of the dialog
  * Ths composable handles the dialog for deleting an exercise
  */
 @Composable
 fun DeleteWorkoutDialog(
-    viewModel: LogViewModel,
+    logViewModel: LogViewModel,
+    supportViewModel: SupportViewModel,
     workoutID: Int,
     setShowDialog: (Boolean) -> Unit
 ) {
     val TAG = "DeleteWorkoutDialog"
+
+    val currentYear by supportViewModel.currentYear.collectAsState()
+    val currentMonth by supportViewModel.currentMonth.collectAsState()
 
     // Main content
     Dialog(onDismissRequest = { setShowDialog(false) }) {
@@ -327,7 +264,7 @@ fun DeleteWorkoutDialog(
                     // OK button
                     Button(onClick = {
                         // Calls view model to delete the workout from database and refresh view model
-                        viewModel.deleteWorkoutByID(workoutID)
+                        logViewModel.deleteWorkoutByID(workoutID = workoutID, year = currentYear, month = currentMonth)
                         setShowDialog(false)
                     }) {
                         Text(text = "Ok")
@@ -336,156 +273,6 @@ fun DeleteWorkoutDialog(
                     Button(onClick = { setShowDialog(false) }) {
                         Text(text = "Cancel")
                     }
-                }
-            }
-        }
-    }
-}
-
-/**
- * @author Oskar Wiiala
- * @param viewModel
- * This composable is the button for displaying and selecting the month
- */
-@Composable
-fun SelectMonthDropdown(viewModel: LogViewModel) {
-    val listMonths = listOf(
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December"
-    )
-    
-    // Handles opening/closing dropdown menu
-    var expanded by remember {
-        mutableStateOf(false)
-    }
-    
-    // Stores selected month as Int with the initial value of current month
-    var month by remember {
-        mutableStateOf(Calendar.getInstance().get(Calendar.MONTH))
-    }
-    // Select month dropdown
-    Box() {
-        Button(
-            onClick = { expanded = true },
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
-        ) {
-            Row() {
-                Icon(
-                    painter = painterResource(id = R.drawable.down_icon_24),
-                    contentDescription = "Dropdown"
-                )
-                Text(text = listMonths[month])
-            }
-        }
-
-        // drop down menu
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            }
-        ) {
-            // adding items
-            listMonths.forEachIndexed { itemIndex, itemValue ->
-                DropdownMenuItem(
-                    onClick = {
-                        month = itemIndex
-                        viewModel.setCurrentMonth(month + 1)
-                        viewModel.getWorkouts()
-                        expanded = false
-                    },
-                    enabled = (itemIndex != month)
-                ) {
-                    Text(text = itemValue)
-                }
-            }
-        }
-    }
-}
-
-/**
- * @author Oskar Wiiala
- * @param viewModel
- * This composable is the button for displaying and selecting the year
- */
-@Composable
-fun SelectYearDropdown(viewModel: LogViewModel) {
-    val TAG = "SelectYearDropdown"
-
-    // Calls view model to get years from database and update view model
-    viewModel.getYears()
-    
-    // Gets years from view model as state
-    val years by viewModel.years.collectAsState()
-
-    // handles closing/showing dropdown menu
-    var expanded by remember {
-        mutableStateOf(false)
-    }
-
-    // Stores selected year as Int with the initial value of current year
-    var year by remember {
-        mutableStateOf(Year(Calendar.getInstance().get(Calendar.YEAR)))
-    }
-
-    // Select year dropdown
-    Box() {
-        Button(
-            onClick = { expanded = true },
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
-        ) {
-            Row() {
-                Icon(
-                    painter = painterResource(id = R.drawable.down_icon_24),
-                    contentDescription = "Dropdown"
-                )
-                // 
-                if (years.contains(year)) {
-                    /*val yearIndex = years.indexOf(year)
-                    Text(text = "${years[yearIndex].year}")*/
-                    Text(text = "${year.year}")
-                } else if (years.isEmpty()) {
-                    // Adds a new year with value of current year if no years exist
-                    viewModel.insertYear(Calendar.getInstance().get(Calendar.YEAR))
-                    if (years.contains(year)) {
-                        /*val yearIndex = years.indexOf(year)
-                        Text(text = "${years[yearIndex].year}")*/
-                        Text(text = "${year.year}")
-                    }
-                }
-
-            }
-        }
-
-        // drop down menu
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-            }
-        ) {
-            // adding items
-            years.forEachIndexed { itemIndex, itemValue ->
-                DropdownMenuItem(
-                    onClick = {
-                        year = itemValue
-                        viewModel.setCurrentYear(year.year)
-                        viewModel.getWorkouts()
-                        expanded = false
-                    },
-                    enabled = (itemValue != year)
-                ) {
-                    Text(text = "${itemValue.year}")
                 }
             }
         }
