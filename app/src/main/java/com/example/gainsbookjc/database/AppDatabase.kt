@@ -7,16 +7,18 @@ import androidx.room.RoomDatabase
 import com.example.gainsbookjc.database.entities.Workout
 import com.example.gainsbookjc.database.entities.Exercise
 import com.example.gainsbookjc.database.entities.Year
-import com.example.gainsbookjc.database.entities.Lift
+import com.example.gainsbookjc.database.entities.Statistic
 import com.example.gainsbookjc.database.entities.Profile
+import com.example.gainsbookjc.database.entities.Variable
 
 @Database(
     entities = [
         Workout::class,
         Exercise::class,
         Year::class,
-        Lift::class,
-        Profile::class
+        Statistic::class,
+        Profile::class,
+        Variable::class
     ],
     version = 1
 )

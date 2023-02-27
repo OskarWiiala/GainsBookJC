@@ -1,10 +1,7 @@
 package com.example.gainsbookjc.database
 
 import androidx.room.*
-import com.example.gainsbookjc.database.entities.Exercise
-import com.example.gainsbookjc.database.entities.Lift
-import com.example.gainsbookjc.database.entities.Workout
-import com.example.gainsbookjc.database.entities.Year
+import com.example.gainsbookjc.database.entities.*
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
 
 @Dao
@@ -24,7 +21,10 @@ interface AppDao {
     suspend fun insertYear(year: Year)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLift(lift: Lift)
+    suspend fun insertVariable(variable: Variable)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertStatistic(statistic: Statistic)
 
     // GET Queries
     // @Transaction is required to prevent multithreading problems
@@ -41,8 +41,16 @@ interface AppDao {
     suspend fun getYears(): List<Year>
 
     @Transaction
-    @Query("SELECT * FROM lift WHERE lift = :lift AND type = :type AND year = :year AND month = :month")
-    suspend fun getLiftsByLiftTypeYearMonth(lift: String, type: String, year: Int, month: Int): List<Lift>
+    @Query("SELECT * FROM variable")
+    suspend fun getVariables(): List<Variable>
+
+    @Transaction
+    @Query("Select variableID FROM variable WHERE variableName = :variableName")
+    suspend fun getVariableIDByName(variableName: String): Int
+
+    @Transaction
+    @Query("SELECT * FROM statistic WHERE variableID = :variableID AND type = :type AND month = :month AND year = :year")
+    suspend fun getStatisticsBySelection(variableID: Int, type: String, month: Int, year: Int): List<Statistic>
 
     // Deletions
     @Transaction

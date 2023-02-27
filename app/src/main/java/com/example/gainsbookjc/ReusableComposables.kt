@@ -13,8 +13,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.example.gainsbookjc.database.entities.Variable
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.viewmodels.LogViewModel
+import com.example.gainsbookjc.viewmodels.StatsViewModel
 import com.example.gainsbookjc.viewmodels.SupportViewModel
 import java.util.*
 
@@ -26,7 +28,6 @@ import java.util.*
  */
 @Composable
 fun AddNewYearButton(supportViewModel: SupportViewModel) {
-
     // handles showing/closing add new year dialog
     var showDialog by remember {
         mutableStateOf(false)
@@ -115,8 +116,11 @@ fun AddNewYearDialog(supportViewModel: SupportViewModel, setShowDialog: (Boolean
 fun SelectMonthDropdown(
     supportViewModel: SupportViewModel,
     logViewModel: LogViewModel?,
-    screen: String
+    statsViewModel: StatsViewModel?,
+    screen: String,
+    color: Color = Color.White
 ) {
+    val TAG = "SelectMonthDropdown"
     val listMonths = listOf(
         "January",
         "February",
@@ -136,6 +140,12 @@ fun SelectMonthDropdown(
     val currentYear by supportViewModel.currentYear.collectAsState()
     val currentMonth by supportViewModel.currentMonth.collectAsState()
 
+    Log.d(TAG, "statsViewModel: $statsViewModel")
+
+    /*val variable by statsViewModel?.variable.collectAsState()
+    val type by statsViewModel?.type.collectAsState()*/
+
+
     // Handles opening/closing dropdown menu
     var expanded by remember {
         mutableStateOf(false)
@@ -149,7 +159,7 @@ fun SelectMonthDropdown(
     Box() {
         Button(
             onClick = { expanded = true },
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+            colors = ButtonDefaults.buttonColors(backgroundColor = color)
         ) {
             Row() {
                 Icon(
@@ -171,6 +181,7 @@ fun SelectMonthDropdown(
             listMonths.forEachIndexed { itemIndex, itemValue ->
                 DropdownMenuItem(
                     onClick = {
+                        Log.d(TAG, "clicked on item")
                         month = itemIndex
                         supportViewModel.setCurrentMonth(month + 1)
                         if (screen == "LogScreen") {
@@ -179,7 +190,16 @@ fun SelectMonthDropdown(
                                 month = currentMonth
                             )
                         } else if (screen == "StatsScreen") {
+                            val variable = statsViewModel?.variable?.value
+                            val type = statsViewModel?.type?.value
 
+                            Log.d(TAG, "variable: $variable, type: $type")
+                            statsViewModel?.getStatisticsBySelection(
+                                variableID = variable?.variableID ?: 0,
+                                type = type ?: "10rm",
+                                month = currentMonth,
+                                year = currentYear
+                            )
                         }
 
                         expanded = false
@@ -202,7 +222,9 @@ fun SelectMonthDropdown(
 fun SelectYearDropdown(
     supportViewModel: SupportViewModel,
     logViewModel: LogViewModel?,
-    screen: String
+    statsViewModel: StatsViewModel?,
+    screen: String,
+    color: Color = Color.White
 ) {
     val TAG = "SelectYearDropdown"
 
@@ -230,7 +252,7 @@ fun SelectYearDropdown(
     Box() {
         Button(
             onClick = { expanded = true },
-            colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+            colors = ButtonDefaults.buttonColors(backgroundColor = color)
         ) {
             Row() {
                 Icon(
@@ -274,7 +296,16 @@ fun SelectYearDropdown(
                                 month = currentMonth
                             )
                         } else if (screen == "StatsScreen") {
+                            val variable = statsViewModel?.variable?.value
+                            val type = statsViewModel?.type?.value
 
+                            Log.d(TAG, "variable: $variable, type: $type")
+                            statsViewModel?.getStatisticsBySelection(
+                                variableID = variable?.variableID ?: 0,
+                                type = type ?: "10rm",
+                                month = currentMonth,
+                                year = currentYear
+                            )
                         }
 
                         expanded = false
@@ -546,6 +577,156 @@ fun DeleteExerciseDialog(
                     Button(onClick = { setShowDialog(false) }) {
                         Text(text = "Cancel")
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String) {
+    val TAG = "SelectVariableDropdown"
+
+    // Get currentYear and currentMonth from supportViewModel as state
+    val currentYear by supportViewModel.currentYear.collectAsState()
+    val currentMonth by supportViewModel.currentMonth.collectAsState()
+
+    // Get variables from statsViewModel and collect as state
+    val variables by statsViewModel.variables.collectAsState()
+    val variable by statsViewModel.variable.collectAsState()
+
+
+    // handles closing/showing dropdown menu
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+
+    // Stores selected year as Int with the initial value of current year
+    var selectedVariable by remember {
+        mutableStateOf(variable)
+    }
+
+    // Select variable dropdown
+    Box() {
+        Button(
+            onClick = { expanded = true },
+            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary)
+        ) {
+            Row() {
+                Icon(
+                    painter = painterResource(id = R.drawable.down_icon_24),
+                    contentDescription = "Dropdown"
+                )
+                Text(text = variable.variableName)
+            }
+
+            // drop down menu
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = {
+                    expanded = false
+                }
+            ) {
+                // adding items
+                variables.forEachIndexed { itemIndex, itemValue ->
+                    DropdownMenuItem(
+                        onClick = {
+                            selectedVariable = itemValue
+                            statsViewModel.changeVariable(selectedVariable)
+
+                            val type = statsViewModel.type.value
+
+                            Log.d(TAG, "variable: $variable, type: $type")
+
+                            if (screen == "StatsScreen") {
+                                statsViewModel.getStatisticsBySelection(
+                                    variableID = variable.variableID,
+                                    type = type,
+                                    month = currentMonth,
+                                    year = currentYear
+                                )
+                            }
+
+                            expanded = false
+                        },
+                        enabled = (itemValue != variable)
+                    ) {
+                        Text(text = itemValue.variableName)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SelectTypeDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String) {
+    val TAG = "SelectTypeDropdown"
+    val types = listOf("10rm", "5rm", "1rm")
+
+    // Get currentYear and currentMonth from supportViewModel as state
+    val currentYear by supportViewModel.currentYear.collectAsState()
+    val currentMonth by supportViewModel.currentMonth.collectAsState()
+
+    val type by statsViewModel.type.collectAsState()
+
+    // handles closing/showing dropdown menu
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+
+    // Stores selected year as Int with the initial value of current year
+    var selectedType by remember {
+        mutableStateOf(type)
+    }
+
+    // Select type dropdown
+    Box() {
+        Button(
+            onClick = { expanded = true },
+            colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary)
+        ) {
+            Row() {
+                Icon(
+                    painter = painterResource(id = R.drawable.down_icon_24),
+                    contentDescription = "Dropdown"
+                )
+                Text(text = type)
+            }
+        }
+
+        // drop down menu
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                expanded = false
+            }
+        ) {
+            // adding items
+            types.forEachIndexed { itemIndex, itemValue ->
+                DropdownMenuItem(
+                    onClick = {
+                        Log.d(TAG, "clicked on item")
+                        selectedType = itemValue
+                        statsViewModel.changeType(itemValue)
+
+                        val variable = statsViewModel.variable.value
+
+                        Log.d(TAG, "variable: $variable, type: $type")
+
+                        if (screen == "StatsScreen") {
+                            statsViewModel.getStatisticsBySelection(
+                                variableID = variable.variableID ?: 0,
+                                type = type,
+                                month = currentMonth,
+                                year = currentYear
+                            )
+                        }
+                        expanded = false
+                    },
+                    enabled = (itemValue != selectedType)
+                ) {
+                    Text(text = itemValue)
                 }
             }
         }

@@ -67,9 +67,9 @@ fun LogScreen(
             // + new year button
             AddNewYearButton(supportViewModel = supportViewModel)
             Spacer(modifier = Modifier.width(10.dp))
-            SelectMonthDropdown(supportViewModel = supportViewModel, logViewModel = logViewModel, screen = "LogScreen")
+            SelectMonthDropdown(supportViewModel = supportViewModel, logViewModel = logViewModel, statsViewModel = null, screen = "LogScreen")
             Spacer(modifier = Modifier.width(10.dp))
-            SelectYearDropdown(supportViewModel = supportViewModel, logViewModel = logViewModel, screen = "LogScreen")
+            SelectYearDropdown(supportViewModel = supportViewModel, logViewModel = logViewModel, statsViewModel = null, screen = "LogScreen")
             Spacer(modifier = Modifier.width(10.dp))
         }
 

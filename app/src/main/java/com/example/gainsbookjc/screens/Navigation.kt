@@ -72,5 +72,15 @@ fun NavigationGraph(
         ) {
             NewWorkoutScreen(context = context, navController = navController)
         }
+
+        // NewStatisticScreen
+        composable(
+            route = WorkoutScreens.newStatisticScreen.screen_route
+        ) {
+            NewStatisticScreen(
+                context = context,
+                navController = navController,
+            )
+        }
     }
 }

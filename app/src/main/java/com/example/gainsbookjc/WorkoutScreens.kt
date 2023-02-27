@@ -9,6 +9,8 @@ sealed class WorkoutScreens(val screen_route: String) {
     object ViewWorkoutScreen: WorkoutScreens("view_workout_screen")
     object EditWorkoutScreen: WorkoutScreens("edit_workout_screen")
 
+    object newStatisticScreen: WorkoutScreens("new_statistic_screen")
+
     // only works for mandatory arguments
     fun withArgs(vararg args: Int): String {
         return buildString {
