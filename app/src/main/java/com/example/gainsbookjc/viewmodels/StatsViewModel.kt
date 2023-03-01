@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class StatsViewModel(context: Context) : ViewModel() {
     val TAG = "StatsViewModel"
@@ -32,7 +33,7 @@ class StatsViewModel(context: Context) : ViewModel() {
     val statistics: StateFlow<List<Statistic>> get() = _statistics
 
     private val _newValue = MutableStateFlow(0.0)
-    val newValue: StateFlow<Double> get() =_newValue
+    val newValue: StateFlow<Double> get() = _newValue
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -46,26 +47,37 @@ class StatsViewModel(context: Context) : ViewModel() {
                 insertVariable("Chin up")
                 insertVariable("Seal row")
                 getVariables()
-            } else {
-
                 _variable.emit(variables.value.first())
+                getStatisticsBySelection(
+                    variableID = variable.value.variableID,
+                    type = type.value,
+                    month = Calendar.getInstance().get(Calendar.MONTH) + 1,
+                    year = Calendar.getInstance().get(Calendar.YEAR)
+                )
+            } else {
+                _variable.emit(variables.value.first())
+                getStatisticsBySelection(
+                    variableID = variable.value.variableID,
+                    type = type.value,
+                    month = Calendar.getInstance().get(Calendar.MONTH) + 1,
+                    year = Calendar.getInstance().get(Calendar.YEAR)
+                )
             }
         }
     }
 
-    suspend fun getVariables() {
+    private suspend fun getVariables() {
         val response = dao.getVariables()
         _variables.emit(response)
     }
 
-    fun changeVariable(variable: Variable) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _variable.emit(variable)
-        }
+    suspend fun changeVariable(variable: Variable) {
+        _variable.emit(variable)
     }
 
     fun getStatisticsBySelection(variableID: Int, type: String, month: Int, year: Int) {
         viewModelScope.launch(Dispatchers.IO) {
+            Log.d(TAG, "get statistics by: $variableID, $type, $month, $year")
             val response = dao.getStatisticsBySelection(
                 variableID = variableID,
                 type = type,
@@ -93,10 +105,9 @@ class StatsViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun changeType(type: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _type.emit(type)
-        }
+    suspend fun changeType(type: String) {
+        Log.d(TAG, "changing type: $type")
+        _type.emit(type)
     }
 
     fun insertStatistic(

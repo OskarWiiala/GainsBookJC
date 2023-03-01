@@ -18,6 +18,8 @@ import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.viewmodels.LogViewModel
 import com.example.gainsbookjc.viewmodels.StatsViewModel
 import com.example.gainsbookjc.viewmodels.SupportViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
 
 /**
@@ -121,6 +123,9 @@ fun SelectMonthDropdown(
     color: Color = Color.White
 ) {
     val TAG = "SelectMonthDropdown"
+
+    val coroutineScope = rememberCoroutineScope()
+
     val listMonths = listOf(
         "January",
         "February",
@@ -181,28 +186,31 @@ fun SelectMonthDropdown(
             listMonths.forEachIndexed { itemIndex, itemValue ->
                 DropdownMenuItem(
                     onClick = {
-                        Log.d(TAG, "clicked on item")
-                        month = itemIndex
-                        supportViewModel.setCurrentMonth(month + 1)
-                        if (screen == "LogScreen") {
-                            logViewModel?.getWorkoutsByYearMonth(
-                                year = currentYear,
-                                month = currentMonth
-                            )
-                        } else if (screen == "StatsScreen") {
-                            val variable = statsViewModel?.variable?.value
-                            val type = statsViewModel?.type?.value
+                        coroutineScope.launch(Dispatchers.IO) {
+                            Log.d(TAG, "clicked on item")
+                            month = itemIndex
+                            supportViewModel.setCurrentMonth(month + 1)
+                            if (screen == "LogScreen") {
+                                logViewModel?.getWorkoutsByYearMonth(
+                                    year = currentYear,
+                                    month = currentMonth
+                                )
+                            } else if (screen == "StatsScreen") {
+                                val variable = statsViewModel?.variable?.value
+                                val type = statsViewModel?.type?.value
+                                val currentMonth2 = supportViewModel.currentMonth.value
+                                val currentYear2 = supportViewModel.currentYear.value
 
-                            Log.d(TAG, "variable: $variable, type: $type")
-                            statsViewModel?.getStatisticsBySelection(
-                                variableID = variable?.variableID ?: 0,
-                                type = type ?: "10rm",
-                                month = currentMonth,
-                                year = currentYear
-                            )
+                                Log.d(TAG, "variable: $variable, type: $type")
+                                statsViewModel?.getStatisticsBySelection(
+                                    variableID = variable?.variableID ?: 0,
+                                    type = type ?: "10rm",
+                                    month = currentMonth2,
+                                    year = currentYear2
+                                )
+                            }
+                            expanded = false
                         }
-
-                        expanded = false
                     },
                     enabled = (itemIndex != month)
                 ) {
@@ -227,6 +235,8 @@ fun SelectYearDropdown(
     color: Color = Color.White
 ) {
     val TAG = "SelectYearDropdown"
+
+    val coroutineScope = rememberCoroutineScope()
 
     // Calls view model to get years from database and update view model
     supportViewModel.getYears()
@@ -288,27 +298,32 @@ fun SelectYearDropdown(
             years.forEachIndexed { itemIndex, itemValue ->
                 DropdownMenuItem(
                     onClick = {
-                        year = itemValue
-                        supportViewModel.setCurrentYear(year.year)
-                        if (screen == "LogScreen") {
-                            logViewModel?.getWorkoutsByYearMonth(
-                                year = currentYear,
-                                month = currentMonth
-                            )
-                        } else if (screen == "StatsScreen") {
-                            val variable = statsViewModel?.variable?.value
-                            val type = statsViewModel?.type?.value
+                        coroutineScope.launch(Dispatchers.IO) {
+                            year = itemValue
+                            Log.d(TAG, "year: $year")
+                            supportViewModel.setCurrentYear(year.year)
+                            if (screen == "LogScreen") {
+                                logViewModel?.getWorkoutsByYearMonth(
+                                    year = currentYear,
+                                    month = currentMonth
+                                )
+                            } else if (screen == "StatsScreen") {
+                                val variable = statsViewModel?.variable?.value
+                                val type = statsViewModel?.type?.value
+                                val currentMonth2 = supportViewModel.currentMonth.value
+                                val currentYear2 = supportViewModel.currentYear.value
 
-                            Log.d(TAG, "variable: $variable, type: $type")
-                            statsViewModel?.getStatisticsBySelection(
-                                variableID = variable?.variableID ?: 0,
-                                type = type ?: "10rm",
-                                month = currentMonth,
-                                year = currentYear
-                            )
+                                Log.d(TAG, "variable: $variable, type: $type")
+                                statsViewModel?.getStatisticsBySelection(
+                                    variableID = variable?.variableID ?: 0,
+                                    type = type ?: "10rm",
+                                    month = currentMonth2,
+                                    year = currentYear2
+                                )
+                            }
+
+                            expanded = false
                         }
-
-                        expanded = false
                     },
                     enabled = (itemValue != year)
                 ) {
@@ -587,6 +602,8 @@ fun DeleteExerciseDialog(
 fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String) {
     val TAG = "SelectVariableDropdown"
 
+    val coroutineScope = rememberCoroutineScope()
+
     // Get currentYear and currentMonth from supportViewModel as state
     val currentYear by supportViewModel.currentYear.collectAsState()
     val currentMonth by supportViewModel.currentMonth.collectAsState()
@@ -631,23 +648,26 @@ fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: Sup
                 variables.forEachIndexed { itemIndex, itemValue ->
                     DropdownMenuItem(
                         onClick = {
-                            selectedVariable = itemValue
-                            statsViewModel.changeVariable(selectedVariable)
+                            coroutineScope.launch(Dispatchers.IO) {
+                                selectedVariable = itemValue
+                                Log.d(TAG, "selected variable: $selectedVariable")
+                                statsViewModel.changeVariable(selectedVariable)
 
-                            val type = statsViewModel.type.value
+                                val type = statsViewModel.type.value
+                                val variable2 = statsViewModel.variable.value
 
-                            Log.d(TAG, "variable: $variable, type: $type")
+                                Log.d(TAG, "variable: $variable2, type: $type, month: $currentMonth, year: $currentYear")
 
-                            if (screen == "StatsScreen") {
-                                statsViewModel.getStatisticsBySelection(
-                                    variableID = variable.variableID,
-                                    type = type,
-                                    month = currentMonth,
-                                    year = currentYear
-                                )
+                                if (screen == "StatsScreen") {
+                                    statsViewModel.getStatisticsBySelection(
+                                        variableID = variable2.variableID,
+                                        type = type,
+                                        month = currentMonth,
+                                        year = currentYear
+                                    )
+                                }
+                                expanded = false
                             }
-
-                            expanded = false
                         },
                         enabled = (itemValue != variable)
                     ) {
@@ -663,6 +683,7 @@ fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: Sup
 fun SelectTypeDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String) {
     val TAG = "SelectTypeDropdown"
     val types = listOf("10rm", "5rm", "1rm")
+    val coroutineScope = rememberCoroutineScope()
 
     // Get currentYear and currentMonth from supportViewModel as state
     val currentYear by supportViewModel.currentYear.collectAsState()
@@ -706,23 +727,28 @@ fun SelectTypeDropdown(statsViewModel: StatsViewModel, supportViewModel: Support
             types.forEachIndexed { itemIndex, itemValue ->
                 DropdownMenuItem(
                     onClick = {
-                        Log.d(TAG, "clicked on item")
-                        selectedType = itemValue
-                        statsViewModel.changeType(itemValue)
+                        coroutineScope.launch(Dispatchers.IO) {
+                            Log.d(TAG, "clicked on item")
+                            selectedType = itemValue
+                            Log.d(TAG, "selectedType: $selectedType")
+                            statsViewModel.changeType(itemValue)
 
-                        val variable = statsViewModel.variable.value
+                            val variable = statsViewModel.variable.value
+                            val type2 = statsViewModel.type.value
+                            Log.d(TAG, "type2: $type2")
 
-                        Log.d(TAG, "variable: $variable, type: $type")
+                            Log.d(TAG, "variable: $variable, type: $type2, month: $currentMonth, year: $currentYear")
 
-                        if (screen == "StatsScreen") {
-                            statsViewModel.getStatisticsBySelection(
-                                variableID = variable.variableID ?: 0,
-                                type = type,
-                                month = currentMonth,
-                                year = currentYear
-                            )
+                            if (screen == "StatsScreen") {
+                                statsViewModel.getStatisticsBySelection(
+                                    variableID = variable.variableID ?: 0,
+                                    type = type2,
+                                    month = currentMonth,
+                                    year = currentYear
+                                )
+                            }
+                            expanded = false
                         }
-                        expanded = false
                     },
                     enabled = (itemValue != selectedType)
                 ) {

@@ -23,7 +23,7 @@ class SupportViewModel(context: Context) : ViewModel() {
     private val _exercises = MutableStateFlow(listOf<ExerciseWithIndex>())
     val exercises: StateFlow<List<ExerciseWithIndex>> get() = _exercises
 
-    private val _date = MutableStateFlow<WorkoutDate>(WorkoutDate(0,0,0))
+    private val _date = MutableStateFlow<WorkoutDate>(WorkoutDate(0, 0, 0))
     val date: StateFlow<WorkoutDate> get() = _date
 
     private val _years = MutableStateFlow(listOf<Year>())
@@ -84,7 +84,14 @@ class SupportViewModel(context: Context) : ViewModel() {
     }
 
     // Adds workout to database
-    fun addWorkout(exercises: List<ExerciseWithIndex>, workoutID: Int = 0, day: Int, month: Int, year: Int, type: String = "normal") {
+    fun addWorkout(
+        exercises: List<ExerciseWithIndex>,
+        workoutID: Int = 0,
+        day: Int,
+        month: Int,
+        year: Int,
+        type: String = "normal"
+    ) {
         val TAG = "addWorkout"
         viewModelScope.launch(Dispatchers.IO) {
             if (type == "delete") {
@@ -135,16 +142,12 @@ class SupportViewModel(context: Context) : ViewModel() {
         }
     }
 
-    fun setCurrentYear(year: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _currentYear.emit(year)
-        }
+    suspend fun setCurrentYear(year: Int) {
+        _currentYear.emit(year)
     }
 
-    fun setCurrentMonth(month: Int) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _currentMonth.emit(month)
-        }
+    suspend fun setCurrentMonth(month: Int) {
+        _currentMonth.emit(month)
     }
 }
 

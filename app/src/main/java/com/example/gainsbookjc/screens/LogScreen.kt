@@ -28,6 +28,8 @@ import com.example.gainsbookjc.viewmodels.LogViewModel
 import com.example.gainsbookjc.viewmodels.SupportViewModel
 import com.example.gainsbookjc.viewmodels.logViewModelFactory
 import com.example.gainsbookjc.viewmodels.supportViewModelFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Calendar
 
 /**
@@ -45,6 +47,7 @@ fun LogScreen(
     navController: NavController
 ) {
     val TAG = "LogScreen"
+
     val supportViewModel: SupportViewModel = viewModel(factory = supportViewModelFactory {
         SupportViewModel(context)
     })
@@ -52,9 +55,12 @@ fun LogScreen(
         LogViewModel(context)
     })
 
-    // Initializes month and year to be current month and year
-    supportViewModel.setCurrentYear(Calendar.getInstance().get(Calendar.YEAR))
-    supportViewModel.setCurrentMonth(Calendar.getInstance().get(Calendar.MONTH) + 1)
+    LaunchedEffect(Unit) {
+        // Initializes month and year to be current month and year
+        supportViewModel.setCurrentYear(Calendar.getInstance().get(Calendar.YEAR))
+        supportViewModel.setCurrentMonth(Calendar.getInstance().get(Calendar.MONTH) + 1)
+    }
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Top bar elements

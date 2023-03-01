@@ -1,6 +1,7 @@
 package com.example.gainsbookjc.viewmodels
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.*
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.entities.Year
@@ -25,6 +26,7 @@ class LogViewModel(context: Context) : ViewModel() {
     // Gets workout from database and updates _workouts
     fun getWorkoutsByYearMonth(year: Int, month: Int) {
         viewModelScope.launch(Dispatchers.IO) {
+            Log.d(TAG, "year: $year, month: $month")
             val listWorkoutWithExercises = dao.getWorkoutWithExercisesByYearMonth(
                 year = year,
                 month = month
