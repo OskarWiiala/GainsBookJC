@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.*
 import com.example.gainsbookjc.database.AppDatabase
-import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

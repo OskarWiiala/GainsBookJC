@@ -1,18 +1,21 @@
 package com.example.gainsbookjc
 
-import android.util.Log
-
+/**
+ * @author Oskar Wiiala
+ * @param exercises a list of exercises with index
+ * @param textFieldState the state of an editable text field
+ * @return a mutable list of exercises with index
+ * This function handles adding a new exercise to an existing list of exercises
+ * (which can be empty) and returns the new list
+ */
 fun newExercise(
     exercises: MutableList<ExerciseWithIndex>,
     textFieldState: String
 ): MutableList<ExerciseWithIndex> {
-    val TAG = "newExercise"
-    Log.d(TAG, "start")
     var indexOfLast = 1
 
     // Creates a list of indexes based on the exercise index
     if (exercises.isNotEmpty()) {
-        Log.d(TAG, "notEmpty")
         val indexList: MutableList<Int> = mutableListOf()
         exercises.forEach { exerciseWithIndex ->
             indexList.add(exerciseWithIndex.index)
@@ -27,10 +30,19 @@ fun newExercise(
             index = indexOfLast
         )
     )
-    Log.d(TAG, "exercises: $exercises")
     return exercises
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param exercises a list of exercises with index
+ * @param description the description of an individual exercise
+ * @param exerciseIndex the index of an individual exercise
+ * @param textFieldState the state of an editable text field
+ * @return a mutable list of exercises with index
+ * This function handles editing an individual exercise in an existing list of exercises,
+ * keeps the index of the exercise and returns the new list
+ */
 fun editExercise(
     exercises: MutableList<ExerciseWithIndex>,
     description: String,
@@ -58,6 +70,14 @@ fun editExercise(
     return exercises
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param exercises a list of exercises with index
+ * @param description the description of an individual exercise
+ * @param exerciseIndex the index of an individual exercise
+ * @return a list of exercises with index
+ * This function handles deleting an individual exercise from an existing list of exercises and returns the new list
+ */
 fun deleteExercise(
     exercises: MutableList<ExerciseWithIndex>,
     description: String,

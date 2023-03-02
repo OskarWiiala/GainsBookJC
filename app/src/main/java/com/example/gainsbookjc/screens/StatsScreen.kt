@@ -3,27 +3,19 @@ package com.example.gainsbookjc.screens
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.gainsbookjc.*
-import com.example.gainsbookjc.R
 import com.example.gainsbookjc.database.entities.Statistic
 import com.example.gainsbookjc.viewmodels.StatsViewModel
 import com.example.gainsbookjc.viewmodels.SupportViewModel
@@ -37,8 +29,15 @@ import com.github.tehras.charts.line.renderer.xaxis.SimpleXAxisDrawer
 import com.github.tehras.charts.line.renderer.yaxis.SimpleYAxisDrawer
 import com.github.tehras.charts.piechart.animation.simpleChartAnimation
 import java.util.*
-import kotlin.math.roundToInt
 
+/**
+ * @author Oskar Wiiala
+ * @param context
+ * @param navController
+ * Composable for displaying graph data based on variable, type, month and year
+ * Adding a new year and variable to database is also handled here
+ * Navigating to NewStatisticScreen is done by clicking on the fab
+ */
 @Composable
 fun StatsScreen(
     context: Context,
@@ -52,6 +51,7 @@ fun StatsScreen(
         StatsViewModel(context)
     })
 
+    // Do this only once
     LaunchedEffect(Unit) {
         // Initializes month and year to be current month and year
         supportViewModel.setCurrentYear(Calendar.getInstance().get(Calendar.YEAR))
@@ -71,10 +71,16 @@ fun StatsScreen(
             statsViewModel = statsViewModel,
             navController = navController
         )
-        // Fab
     }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param supportViewModel
+ * @param statsViewModel
+ * Top bar for the view
+ * UI for adding a new year and variable to database
+ */
 @Composable
 fun StatsTopBar(supportViewModel: SupportViewModel, statsViewModel: StatsViewModel) {
     Row(
@@ -83,7 +89,6 @@ fun StatsTopBar(supportViewModel: SupportViewModel, statsViewModel: StatsViewMod
             .background(MaterialTheme.colors.primary),
         horizontalArrangement = Arrangement.End
     ) {
-        // + new year button
         AddNewYearButton(supportViewModel = supportViewModel)
         Spacer(modifier = Modifier.width(10.dp))
         AddNewVariableButton(statsViewModel = statsViewModel)
@@ -91,6 +96,11 @@ fun StatsTopBar(supportViewModel: SupportViewModel, statsViewModel: StatsViewMod
     }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param statsViewModel
+ * Button for adding a new variable to database
+ */
 @Composable
 fun AddNewVariableButton(statsViewModel: StatsViewModel) {
     // handles showing/closing add new year dialog
@@ -113,6 +123,13 @@ fun AddNewVariableButton(statsViewModel: StatsViewModel) {
     }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param statsViewModel
+ * @param setShowDialog callback to close dialog
+ * Dialog for adding a new variable to database
+ * Handles call to add a new variable to database in the view model as well
+ */
 @Composable
 fun AddNewVariableDialog(statsViewModel: StatsViewModel, setShowDialog: (Boolean) -> Unit) {
     val TAG = "AddNewLiftDialog"
@@ -144,7 +161,7 @@ fun AddNewVariableDialog(statsViewModel: StatsViewModel, setShowDialog: (Boolean
                     Button(onClick = {
                         val input = textFieldState
                         if (input.isNotEmpty()) {
-                            // calls viewModel to add new year to database and update view model
+                            // calls viewModel to add new variable to database and update view model
                             statsViewModel.insertVariable(input)
                             setShowDialog(false)
                         } else {
@@ -163,11 +180,18 @@ fun AddNewVariableDialog(statsViewModel: StatsViewModel, setShowDialog: (Boolean
     }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param statistics list of statistics
+ * This graph handles displaying weight progression data for a lift
+ * Is based on the variable, type, month and year
+ */
 @Composable
 fun Graph(statistics: List<Statistic>) {
     val TAG = "Graph"
 
     val data = mutableListOf<LineChartData.Point>()
+    // Converts data of type Statistic to type LineChartData.Point
     statistics.forEach { statistic ->
         data.add(
             LineChartData.Point(
@@ -177,7 +201,7 @@ fun Graph(statistics: List<Statistic>) {
         )
     }
 
-    // If there is only one entry, app will crash, so we add an empty entry
+    // If there is only one entry the app will crash, so we add an empty entry
     if (data.size == 1) {
         data.add(
             LineChartData.Point(
@@ -187,36 +211,53 @@ fun Graph(statistics: List<Statistic>) {
         )
     }
 
+    // Since the label of an entry in the x-axis is the day of when the statistic was added,
+    // it makes sense to sort it in an ascending order
     data.sortBy { it.label.toInt() }
 
     Log.d(TAG, "statistics: $statistics")
     Log.d(TAG, "data: $data")
 
-    LineChart(
-        linesChartData = listOf(
-            LineChartData(
-                points = data,
-                lineDrawer = SolidLineDrawer()
-            )
-        ),
-        // Optional properties.
+    // Main content
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.5f),
-        animation = simpleChartAnimation(),
-        pointDrawer = FilledCircularPointDrawer(),
-        horizontalOffset = 5f,
-        xAxisDrawer = SimpleXAxisDrawer(),
-        yAxisDrawer = SimpleYAxisDrawer(),
-    )
+            .fillMaxSize(0.5f)
+            .padding(16.dp)
+    ) {
+        LineChart(
+            linesChartData = listOf(
+                LineChartData(
+                    points = data,
+                    lineDrawer = SolidLineDrawer(color = MaterialTheme.colors.primary)
+                )
+            ),
+            // Optional properties.
+            modifier = Modifier
+                .fillMaxSize(),
+            animation = simpleChartAnimation(),
+            pointDrawer = FilledCircularPointDrawer(diameter = 0.dp),
+            horizontalOffset = 5f,
+            xAxisDrawer = SimpleXAxisDrawer(),
+            yAxisDrawer = SimpleYAxisDrawer(),
+        )
+    }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param supportViewModel
+ * @param statsViewModel
+ * @param navController used with a fab to navigate to NewStatisticScreen
+ * UI for displaying variable, type, month and year dropdowns as well as the fab
+ */
 @Composable
 fun Selections(
     supportViewModel: SupportViewModel,
     statsViewModel: StatsViewModel,
     navController: NavController
 ) {
+    // Variable and type dropdowns
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -226,14 +267,18 @@ fun Selections(
         SelectVariableDropdown(
             statsViewModel = statsViewModel,
             supportViewModel = supportViewModel,
-            screen = "StatsScreen"
+            screen = "StatsScreen",
+            modifier = Modifier.fillMaxWidth(0.5f)
         )
         SelectTypeDropdown(
             statsViewModel = statsViewModel,
             supportViewModel = supportViewModel,
-            screen = "StatsScreen"
+            screen = "StatsScreen",
+            modifier = Modifier.fillMaxWidth(0.5f)
         )
     }
+
+    // Month and year dropdowns
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -245,16 +290,20 @@ fun Selections(
             logViewModel = null,
             statsViewModel = statsViewModel,
             screen = "StatsScreen",
-            color = MaterialTheme.colors.primary
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier.fillMaxWidth(0.5f)
         )
         SelectYearDropdown(
             supportViewModel = supportViewModel,
             logViewModel = null,
             statsViewModel = statsViewModel,
             screen = "StatsScreen",
-            color = MaterialTheme.colors.primary
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier.fillMaxWidth(0.5f)
         )
     }
+
+    // Fab which navigates to NewStatisticScreen
     Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
         FloatingActionButton(
             modifier = Modifier.padding(top = 30.dp),

@@ -13,7 +13,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.example.gainsbookjc.database.entities.Variable
 import com.example.gainsbookjc.database.entities.Year
 import com.example.gainsbookjc.viewmodels.LogViewModel
 import com.example.gainsbookjc.viewmodels.StatsViewModel
@@ -120,7 +119,8 @@ fun SelectMonthDropdown(
     logViewModel: LogViewModel?,
     statsViewModel: StatsViewModel?,
     screen: String,
-    color: Color = Color.White
+    color: Color = Color.White,
+    modifier: Modifier = Modifier
 ) {
     val TAG = "SelectMonthDropdown"
 
@@ -166,7 +166,7 @@ fun SelectMonthDropdown(
             onClick = { expanded = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = color)
         ) {
-            Row() {
+            Row(modifier = modifier) {
                 Icon(
                     painter = painterResource(id = R.drawable.down_icon_24),
                     contentDescription = "Dropdown"
@@ -232,7 +232,8 @@ fun SelectYearDropdown(
     logViewModel: LogViewModel?,
     statsViewModel: StatsViewModel?,
     screen: String,
-    color: Color = Color.White
+    color: Color = Color.White,
+    modifier: Modifier = Modifier
 ) {
     val TAG = "SelectYearDropdown"
 
@@ -264,7 +265,7 @@ fun SelectYearDropdown(
             onClick = { expanded = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = color)
         ) {
-            Row() {
+            Row(modifier = modifier) {
                 Icon(
                     painter = painterResource(id = R.drawable.down_icon_24),
                     contentDescription = "Dropdown"
@@ -283,7 +284,6 @@ fun SelectYearDropdown(
                         Text(text = "${year.year}")
                     }
                 }
-
             }
         }
 
@@ -598,8 +598,17 @@ fun DeleteExerciseDialog(
     }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param statsViewModel
+ * @param supportViewModel
+ * @param screen the screen in which this composable is used in, such as StatsScreen or NewStatisticScreen
+ * @param modifier
+ * Dropdown composable for displaying and selecting a variable
+ * Handles calls to view model
+ */
 @Composable
-fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String) {
+fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String, modifier: Modifier = Modifier) {
     val TAG = "SelectVariableDropdown"
 
     val coroutineScope = rememberCoroutineScope()
@@ -629,7 +638,7 @@ fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: Sup
             onClick = { expanded = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary)
         ) {
-            Row() {
+            Row(modifier = modifier) {
                 Icon(
                     painter = painterResource(id = R.drawable.down_icon_24),
                     contentDescription = "Dropdown"
@@ -650,13 +659,12 @@ fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: Sup
                         onClick = {
                             coroutineScope.launch(Dispatchers.IO) {
                                 selectedVariable = itemValue
-                                Log.d(TAG, "selected variable: $selectedVariable")
                                 statsViewModel.changeVariable(selectedVariable)
 
+                                // values must be retrieved right after changing variable
+                                // emit() does not update fast enough, so we make a direct call here
                                 val type = statsViewModel.type.value
                                 val variable2 = statsViewModel.variable.value
-
-                                Log.d(TAG, "variable: $variable2, type: $type, month: $currentMonth, year: $currentYear")
 
                                 if (screen == "StatsScreen") {
                                     statsViewModel.getStatisticsBySelection(
@@ -679,8 +687,17 @@ fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: Sup
     }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param statsViewModel
+ * @param supportViewModel
+ * @param screen the screen in which this composable is used in, such as StatsScreen or NewStatisticScreen
+ * @param modifier
+ * Dropdown composable for displaying and selecting a type
+ * Handles calls to view model
+ */
 @Composable
-fun SelectTypeDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String) {
+fun SelectTypeDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String, modifier: Modifier = Modifier) {
     val TAG = "SelectTypeDropdown"
     val types = listOf("10rm", "5rm", "1rm")
     val coroutineScope = rememberCoroutineScope()
@@ -707,7 +724,7 @@ fun SelectTypeDropdown(statsViewModel: StatsViewModel, supportViewModel: Support
             onClick = { expanded = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary)
         ) {
-            Row() {
+            Row(modifier = modifier) {
                 Icon(
                     painter = painterResource(id = R.drawable.down_icon_24),
                     contentDescription = "Dropdown"
@@ -728,16 +745,13 @@ fun SelectTypeDropdown(statsViewModel: StatsViewModel, supportViewModel: Support
                 DropdownMenuItem(
                     onClick = {
                         coroutineScope.launch(Dispatchers.IO) {
-                            Log.d(TAG, "clicked on item")
                             selectedType = itemValue
-                            Log.d(TAG, "selectedType: $selectedType")
                             statsViewModel.changeType(itemValue)
 
+                            // values must be retrieved right after changing variable
+                            // emit() does not update fast enough, so we make a direct call here
                             val variable = statsViewModel.variable.value
                             val type2 = statsViewModel.type.value
-                            Log.d(TAG, "type2: $type2")
-
-                            Log.d(TAG, "variable: $variable, type: $type2, month: $currentMonth, year: $currentYear")
 
                             if (screen == "StatsScreen") {
                                 statsViewModel.getStatisticsBySelection(

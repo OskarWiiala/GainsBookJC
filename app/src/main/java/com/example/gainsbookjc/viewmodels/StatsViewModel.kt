@@ -14,6 +14,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
+/**
+ * @author Oskar Wiiala
+ * @param context
+ * View model for StatsScreen and NewStatisticScreen
+ * Handles fetching variables and statistics from database
+ * Also handles adding a new variable to database
+ */
 class StatsViewModel(context: Context) : ViewModel() {
     val TAG = "StatsViewModel"
     val dao = AppDatabase.getInstance(context).appDao
@@ -88,6 +95,7 @@ class StatsViewModel(context: Context) : ViewModel() {
         }
     }
 
+    // Inserts a new variable to database and updates _variables
     fun insertVariable(variableName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val variable = Variable(
@@ -99,6 +107,7 @@ class StatsViewModel(context: Context) : ViewModel() {
         }
     }
 
+    // Handles setting a new value for editable text field in NewStatisticScreen
     fun setNewValue(value: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             _newValue.emit(value)
@@ -110,6 +119,7 @@ class StatsViewModel(context: Context) : ViewModel() {
         _type.emit(type)
     }
 
+    // Inserts a new statistic to database
     fun insertStatistic(
         variableName: String,
         type: String,
@@ -130,12 +140,6 @@ class StatsViewModel(context: Context) : ViewModel() {
                 day = day
             )
             dao.insertStatistic(statistic = statistic)
-            getStatisticsBySelection(
-                variableID = identifier,
-                type = type,
-                month = month,
-                year = year
-            )
         }
     }
 }

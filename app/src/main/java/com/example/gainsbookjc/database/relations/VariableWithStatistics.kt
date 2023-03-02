@@ -5,7 +5,6 @@ import androidx.room.Relation
 import com.example.gainsbookjc.database.entities.Statistic
 import com.example.gainsbookjc.database.entities.Variable
 
-
 data class VariableWithStatistics(
     @Embedded val variable: Variable,
     @Relation(

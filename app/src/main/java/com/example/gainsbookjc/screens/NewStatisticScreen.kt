@@ -25,6 +25,12 @@ import com.example.gainsbookjc.viewmodels.SupportViewModel
 import com.example.gainsbookjc.viewmodels.supportViewModelFactory
 import java.util.*
 
+/**
+ * @author oskar Wiiala
+ * @param context
+ * @param navController used to navigate back to StatsScreen
+ * This view handles adding a new statistic to database
+ */
 @Composable
 fun NewStatisticScreen(
     context: Context,
@@ -38,16 +44,19 @@ fun NewStatisticScreen(
         StatsViewModel(context)
     })
 
-    // collects the state of the view model's date
+    // collects the state of the support view model's date
     val dateVM by supportViewModel.date.collectAsState()
 
+    // collects the state of the stat view model's type, variable and newValue
     val type by statsViewModel.type.collectAsState()
     val variable by statsViewModel.variable.collectAsState()
+    // is used to initialize and handle changing the user's input in a text field
     val newValue by statsViewModel.newValue.collectAsState()
 
     val calendar = Calendar.getInstance()
     // Do this only once
     LaunchedEffect(Unit) {
+        // Initializes the date in the support view model as today
         supportViewModel.setDate(
             WorkoutDate(
                 day = calendar.get(Calendar.DAY_OF_MONTH),
@@ -132,7 +141,7 @@ fun NewStatisticScreen(
         ) {
             // OK button
             Button(onClick = {
-                // Calls view model to add new workout to database
+                // Calls view model to add new statistic to database
                 statsViewModel.insertStatistic(
                     variableName = variable.variableName,
                     type = type,
@@ -153,9 +162,13 @@ fun NewStatisticScreen(
     }
 }
 
+/**
+ * @author Oskar Wiiala
+ * @param statsViewModel
+ * Handles changes to the value of the text field
+ */
 @Composable
 fun ValueTextField(statsViewModel: StatsViewModel) {
-
     val newValue by statsViewModel.newValue.collectAsState()
     Row(modifier = Modifier.fillMaxWidth()) {
         TextField(
