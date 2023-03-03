@@ -98,3 +98,5 @@ fun deleteExercise(
 data class ExerciseWithIndex(var description: String, val index: Int)
 
 data class WorkoutDate(val day: Int, val month: Int, val year: Int)
+
+data class CustomTimeType(val type: String, val value: Long)
