@@ -346,7 +346,7 @@ fun CountDownTimer(
     modifier: Modifier = Modifier,
     timerViewModel: TimerViewModel,
     totalTime: Long,
-    pointColor: Color = MaterialTheme.colors.primary,
+    pointColor: Color = MaterialTheme.colors.secondary,
     inactiveBarColor: Color = Color.DarkGray,
     activeBarColor: Color = MaterialTheme.colors.primary,
     initialValue: Float = 1f,

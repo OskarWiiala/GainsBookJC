@@ -36,7 +36,6 @@ fun NewStatisticScreen(
     context: Context,
     navController: NavController,
 ) {
-    val TAG = "NewStatisticScreen"
     val supportViewModel: SupportViewModel = viewModel(factory = supportViewModelFactory {
         SupportViewModel(context)
     })

@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class SupportViewModel(context: Context) : ViewModel() {
-    val TAG = "SupportViewModel"
     val dao = AppDatabase.getInstance(context).appDao
 
     private val _exercises = MutableStateFlow(listOf<ExerciseWithIndex>())
@@ -36,16 +35,13 @@ class SupportViewModel(context: Context) : ViewModel() {
     val currentMonth: StateFlow<Int> get() = _currentMonth
 
     fun addExercises(exercises: List<ExerciseWithIndex>) {
-        Log.d(TAG, "addExercise")
         viewModelScope.launch {
-            Log.d(TAG, "emitting exercises")
             _exercises.emit(exercises)
         }
     }
 
     fun getWorkoutByID(workoutID: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "getWorkoutByID")
             // Get workout based on workoutID, which will later be loaded in the UI
             val response = dao.getWorkoutWithExercisesByID(workoutID = workoutID)
             // Converts response from WorkoutWithExercises to ExerciseWithIndex
@@ -92,7 +88,6 @@ class SupportViewModel(context: Context) : ViewModel() {
         year: Int,
         type: String = "normal"
     ) {
-        val TAG = "addWorkout"
         viewModelScope.launch(Dispatchers.IO) {
             if (type == "delete") {
                 deleteWorkout(workoutID)

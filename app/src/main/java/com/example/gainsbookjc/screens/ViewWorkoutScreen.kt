@@ -1,7 +1,6 @@
 package com.example.gainsbookjc.screens
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -23,18 +22,19 @@ import com.example.gainsbookjc.viewmodels.viewExerciseViewModelFactory
 
 @Composable
 fun ViewWorkoutScreen(navController: NavController, context: Context, workoutID: Int) {
-    val TAG = "ViewWorkoutScreen"
     val viewModel: ViewWorkoutViewModel = viewModel(factory = viewExerciseViewModelFactory {
         ViewWorkoutViewModel(context)
     })
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         viewModel.getWorkout(workoutID = workoutID)
+
         val workout by viewModel.workout.collectAsState()
-        Log.d(TAG, "$workout")
+
         if (workout.isNotEmpty()) {
             Text(
                 modifier = Modifier

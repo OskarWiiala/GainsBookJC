@@ -22,7 +22,6 @@ import java.util.Calendar
  * Also handles adding a new variable to database
  */
 class StatsViewModel(context: Context) : ViewModel() {
-    val TAG = "StatsViewModel"
     val dao = AppDatabase.getInstance(context).appDao
 
     private val _variables = MutableStateFlow(listOf<Variable>())
@@ -46,7 +45,6 @@ class StatsViewModel(context: Context) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             getVariables()
             if (variables.value.isEmpty()) {
-                Log.d(TAG, "variables are empty")
                 insertVariable("Bench press")
                 insertVariable("Squat")
                 insertVariable("Deadlift")
@@ -84,7 +82,6 @@ class StatsViewModel(context: Context) : ViewModel() {
 
     fun getStatisticsBySelection(variableID: Int, type: String, month: Int, year: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "get statistics by: $variableID, $type, $month, $year")
             val response = dao.getStatisticsBySelection(
                 variableID = variableID,
                 type = type,
@@ -115,7 +112,6 @@ class StatsViewModel(context: Context) : ViewModel() {
     }
 
     suspend fun changeType(type: String) {
-        Log.d(TAG, "changing type: $type")
         _type.emit(type)
     }
 

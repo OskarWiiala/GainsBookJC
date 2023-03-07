@@ -33,7 +33,7 @@ fun NavigationGraph(
             TimerScreen()
         }
         composable(BottomNavItem.ProfileScreen.screen_route) {
-            ProfileScreen()
+            ProfileScreen(context = context)
         }
 
         // ViewWorkoutScreen

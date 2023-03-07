@@ -1,6 +1,5 @@
 package com.example.gainsbookjc
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -28,7 +28,10 @@ import java.util.*
  * It handles displaying the add new year dialog
  */
 @Composable
-fun AddNewYearButton(supportViewModel: SupportViewModel) {
+fun AddNewYearButton(
+    supportViewModel: SupportViewModel,
+    color: Color = MaterialTheme.colors.primary
+) {
     // handles showing/closing add new year dialog
     var showDialog by remember {
         mutableStateOf(false)
@@ -42,10 +45,10 @@ fun AddNewYearButton(supportViewModel: SupportViewModel) {
 
     Button(
         onClick = { showDialog = true },
-        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
+        colors = ButtonDefaults.buttonColors(backgroundColor = color),
         contentPadding = PaddingValues(10.dp)
     ) {
-        Text(text = "+ new year")
+        Text(text = "+ new year", fontWeight = FontWeight.ExtraBold)
     }
 }
 
@@ -58,7 +61,6 @@ fun AddNewYearButton(supportViewModel: SupportViewModel) {
  */
 @Composable
 fun AddNewYearDialog(supportViewModel: SupportViewModel, setShowDialog: (Boolean) -> Unit) {
-    val TAG = "NewYearDialog"
 
     // handles storing user input
     var textFieldState by remember {
@@ -86,16 +88,14 @@ fun AddNewYearDialog(supportViewModel: SupportViewModel, setShowDialog: (Boolean
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     // OK button
                     Button(onClick = {
-                        // Only accepts integers
-                        val input = textFieldState.toIntOrNull()
-                        if (input != null) {
-                            // calls viewModel to add new year to database and update view model
-                            supportViewModel.insertYear(input)
-                            setShowDialog(false)
-                        } else {
-                            Log.d(TAG, "Input not integer!")
-                        }
-                    }) {
+                            // Only accepts integers
+                            val input = textFieldState.toIntOrNull()
+                            if (input != null) {
+                                // calls viewModel to add new year to database and update view model
+                                supportViewModel.insertYear(input)
+                                setShowDialog(false)
+                            }
+                        }) {
                         Text(text = "Ok")
                     }
                     Spacer(modifier = Modifier.width(16.dp))
@@ -119,11 +119,9 @@ fun SelectMonthDropdown(
     logViewModel: LogViewModel?,
     statsViewModel: StatsViewModel?,
     screen: String,
-    color: Color = Color.White,
+    color: Color = MaterialTheme.colors.primary,
     modifier: Modifier = Modifier
 ) {
-    val TAG = "SelectMonthDropdown"
-
     val coroutineScope = rememberCoroutineScope()
 
     val listMonths = listOf(
@@ -145,12 +143,6 @@ fun SelectMonthDropdown(
     val currentYear by supportViewModel.currentYear.collectAsState()
     val currentMonth by supportViewModel.currentMonth.collectAsState()
 
-    Log.d(TAG, "statsViewModel: $statsViewModel")
-
-    /*val variable by statsViewModel?.variable.collectAsState()
-    val type by statsViewModel?.type.collectAsState()*/
-
-
     // Handles opening/closing dropdown menu
     var expanded by remember {
         mutableStateOf(false)
@@ -171,7 +163,7 @@ fun SelectMonthDropdown(
                     painter = painterResource(id = R.drawable.down_icon_24),
                     contentDescription = "Dropdown"
                 )
-                Text(text = listMonths[month])
+                Text(text = listMonths[month], fontWeight = FontWeight.ExtraBold)
             }
         }
 
@@ -187,7 +179,6 @@ fun SelectMonthDropdown(
                 DropdownMenuItem(
                     onClick = {
                         coroutineScope.launch(Dispatchers.IO) {
-                            Log.d(TAG, "clicked on item")
                             month = itemIndex
                             supportViewModel.setCurrentMonth(month + 1)
                             if (screen == "LogScreen") {
@@ -201,7 +192,6 @@ fun SelectMonthDropdown(
                                 val currentMonth2 = supportViewModel.currentMonth.value
                                 val currentYear2 = supportViewModel.currentYear.value
 
-                                Log.d(TAG, "variable: $variable, type: $type")
                                 statsViewModel?.getStatisticsBySelection(
                                     variableID = variable?.variableID ?: 0,
                                     type = type ?: "10rm",
@@ -232,11 +222,9 @@ fun SelectYearDropdown(
     logViewModel: LogViewModel?,
     statsViewModel: StatsViewModel?,
     screen: String,
-    color: Color = Color.White,
+    color: Color = MaterialTheme.colors.primary,
     modifier: Modifier = Modifier
 ) {
-    val TAG = "SelectYearDropdown"
-
     val coroutineScope = rememberCoroutineScope()
 
     // Calls view model to get years from database and update view model
@@ -272,16 +260,12 @@ fun SelectYearDropdown(
                 )
                 //
                 if (years.contains(year)) {
-                    /*val yearIndex = years.indexOf(year)
-                    Text(text = "${years[yearIndex].year}")*/
-                    Text(text = "${year.year}")
+                    Text(text = "${year.year}", fontWeight = FontWeight.ExtraBold)
                 } else if (years.isEmpty()) {
                     // Adds a new year with value of current year if no years exist
                     supportViewModel.insertYear(Calendar.getInstance().get(Calendar.YEAR))
                     if (years.contains(year)) {
-                        /*val yearIndex = years.indexOf(year)
-                        Text(text = "${years[yearIndex].year}")*/
-                        Text(text = "${year.year}")
+                        Text(text = "${year.year}", fontWeight = FontWeight.ExtraBold)
                     }
                 }
             }
@@ -300,7 +284,6 @@ fun SelectYearDropdown(
                     onClick = {
                         coroutineScope.launch(Dispatchers.IO) {
                             year = itemValue
-                            Log.d(TAG, "year: $year")
                             supportViewModel.setCurrentYear(year.year)
                             if (screen == "LogScreen") {
                                 logViewModel?.getWorkoutsByYearMonth(
@@ -313,7 +296,6 @@ fun SelectYearDropdown(
                                 val currentMonth2 = supportViewModel.currentMonth.value
                                 val currentYear2 = supportViewModel.currentYear.value
 
-                                Log.d(TAG, "variable: $variable, type: $type")
                                 statsViewModel?.getStatisticsBySelection(
                                     variableID = variable?.variableID ?: 0,
                                     type = type ?: "10rm",
@@ -343,8 +325,6 @@ fun SelectYearDropdown(
  */
 @Composable
 fun ExerciseCard(supportViewModel: SupportViewModel, description: String, exerciseIndex: Int) {
-    val TAG = "ExerciseCard"
-
     // used for showing/hiding dialog for editing an exercise
     var showEditDialog by remember {
         mutableStateOf(false)
@@ -394,7 +374,6 @@ fun ExerciseCard(supportViewModel: SupportViewModel, description: String, exerci
             }
             Row(horizontalArrangement = Arrangement.End) {
                 IconButton(onClick = {
-                    Log.d(TAG, "clicked edit")
                     showEditDialog = true
                 }) {
                     Icon(
@@ -403,7 +382,6 @@ fun ExerciseCard(supportViewModel: SupportViewModel, description: String, exerci
                     )
                 }
                 IconButton(onClick = {
-                    Log.d(TAG, "clicked delete")
                     showDeleteDialog = true
                 }) {
                     Icon(
@@ -423,8 +401,6 @@ fun ExerciseCard(supportViewModel: SupportViewModel, description: String, exerci
  */
 @Composable
 fun AddNewExerciseButton(supportViewModel: SupportViewModel) {
-    val TAG = "AddNewExercise"
-
     // used for showing/hiding dialog for adding an exercise
     var showDialog by remember {
         mutableStateOf(false)
@@ -443,7 +419,6 @@ fun AddNewExerciseButton(supportViewModel: SupportViewModel) {
 
     // Clicking the button displays the dialog for adding a new exercise
     Button(onClick = {
-        Log.d(TAG, "clicked add new exercise")
         showDialog = true
     }) {
         Text(text = "+ NEW EXERCISE")
@@ -465,8 +440,6 @@ fun HandleExerciseDialog(
     type: String,
     setShowDialog: (Boolean) -> Unit
 ) {
-    val TAG = "AddNewExerciseDialog"
-
     // Collects exercises as state from view model
     val exercises by supportViewModel.exercises.collectAsState()
 
@@ -511,7 +484,6 @@ fun HandleExerciseDialog(
                             mutableListOf(ExerciseWithIndex(description = "fail", index = 0))
 
                         if (type == "new") {
-                            Log.d(TAG, "new")
                             exercisesList = newExercise(
                                 exercises = exercises.toMutableList(),
                                 textFieldState = textFieldState
@@ -557,8 +529,6 @@ fun DeleteExerciseDialog(
     exerciseIndex: Int,
     setShowDialog: (Boolean) -> Unit
 ) {
-    val TAG = "DeleteExerciseDialog"
-
     // Collects exercises as state from view model
     val exercises by supportViewModel.exercises.collectAsState()
 
@@ -608,9 +578,12 @@ fun DeleteExerciseDialog(
  * Handles calls to view model
  */
 @Composable
-fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String, modifier: Modifier = Modifier) {
-    val TAG = "SelectVariableDropdown"
-
+fun SelectVariableDropdown(
+    statsViewModel: StatsViewModel,
+    supportViewModel: SupportViewModel,
+    screen: String,
+    modifier: Modifier = Modifier
+) {
     val coroutineScope = rememberCoroutineScope()
 
     // Get currentYear and currentMonth from supportViewModel as state
@@ -697,8 +670,12 @@ fun SelectVariableDropdown(statsViewModel: StatsViewModel, supportViewModel: Sup
  * Handles calls to view model
  */
 @Composable
-fun SelectTypeDropdown(statsViewModel: StatsViewModel, supportViewModel: SupportViewModel, screen: String, modifier: Modifier = Modifier) {
-    val TAG = "SelectTypeDropdown"
+fun SelectTypeDropdown(
+    statsViewModel: StatsViewModel,
+    supportViewModel: SupportViewModel,
+    screen: String,
+    modifier: Modifier = Modifier
+) {
     val types = listOf("10rm", "5rm", "1rm")
     val coroutineScope = rememberCoroutineScope()
 

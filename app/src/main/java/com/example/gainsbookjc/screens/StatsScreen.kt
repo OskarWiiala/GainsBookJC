@@ -1,13 +1,13 @@
 package com.example.gainsbookjc.screens
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -43,7 +43,6 @@ fun StatsScreen(
     context: Context,
     navController: NavController
 ) {
-    val TAG = "StatsScreen"
     val supportViewModel: SupportViewModel = viewModel(factory = supportViewModelFactory {
         SupportViewModel(context)
     })
@@ -63,6 +62,13 @@ fun StatsScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         // Top bar elements
         StatsTopBar(supportViewModel = supportViewModel, statsViewModel = statsViewModel)
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .height(2.dp)
+                .background(MaterialTheme.colors.secondary)
+                .align(Alignment.CenterHorizontally)
+        )
         // Graph
         Graph(statistics = statistics)
         // variable, type, month, year
@@ -86,7 +92,7 @@ fun StatsTopBar(supportViewModel: SupportViewModel, statsViewModel: StatsViewMod
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colors.primary),
+            .background(Color.White),
         horizontalArrangement = Arrangement.End
     ) {
         AddNewYearButton(supportViewModel = supportViewModel)
@@ -102,7 +108,10 @@ fun StatsTopBar(supportViewModel: SupportViewModel, statsViewModel: StatsViewMod
  * Button for adding a new variable to database
  */
 @Composable
-fun AddNewVariableButton(statsViewModel: StatsViewModel) {
+fun AddNewVariableButton(
+    statsViewModel: StatsViewModel,
+    color: Color = MaterialTheme.colors.primary
+) {
     // handles showing/closing add new year dialog
     var showDialog by remember {
         mutableStateOf(false)
@@ -116,7 +125,7 @@ fun AddNewVariableButton(statsViewModel: StatsViewModel) {
 
     Button(
         onClick = { showDialog = true },
-        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White),
+        colors = ButtonDefaults.buttonColors(backgroundColor = color),
         contentPadding = PaddingValues(10.dp)
     ) {
         Text(text = "+ new lift")
@@ -132,8 +141,6 @@ fun AddNewVariableButton(statsViewModel: StatsViewModel) {
  */
 @Composable
 fun AddNewVariableDialog(statsViewModel: StatsViewModel, setShowDialog: (Boolean) -> Unit) {
-    val TAG = "AddNewLiftDialog"
-
     // handles storing user input
     var textFieldState by remember {
         mutableStateOf("")
@@ -164,8 +171,6 @@ fun AddNewVariableDialog(statsViewModel: StatsViewModel, setShowDialog: (Boolean
                             // calls viewModel to add new variable to database and update view model
                             statsViewModel.insertVariable(input)
                             setShowDialog(false)
-                        } else {
-                            Log.d(TAG, "Input is empty")
                         }
                     }) {
                         Text(text = "Ok")
@@ -188,8 +193,6 @@ fun AddNewVariableDialog(statsViewModel: StatsViewModel, setShowDialog: (Boolean
  */
 @Composable
 fun Graph(statistics: List<Statistic>) {
-    val TAG = "Graph"
-
     val data = mutableListOf<LineChartData.Point>()
     // Converts data of type Statistic to type LineChartData.Point
     statistics.forEach { statistic ->
@@ -215,9 +218,6 @@ fun Graph(statistics: List<Statistic>) {
     // it makes sense to sort it in an ascending order
     data.sortBy { it.label.toInt() }
 
-    Log.d(TAG, "statistics: $statistics")
-    Log.d(TAG, "data: $data")
-
     // Main content
     Column(
         modifier = Modifier
@@ -229,7 +229,7 @@ fun Graph(statistics: List<Statistic>) {
             linesChartData = listOf(
                 LineChartData(
                     points = data,
-                    lineDrawer = SolidLineDrawer(color = MaterialTheme.colors.primary)
+                    lineDrawer = SolidLineDrawer(color = MaterialTheme.colors.secondary)
                 )
             ),
             // Optional properties.
@@ -238,8 +238,8 @@ fun Graph(statistics: List<Statistic>) {
             animation = simpleChartAnimation(),
             pointDrawer = FilledCircularPointDrawer(diameter = 0.dp),
             horizontalOffset = 5f,
-            xAxisDrawer = SimpleXAxisDrawer(),
-            yAxisDrawer = SimpleYAxisDrawer(),
+            xAxisDrawer = SimpleXAxisDrawer(axisLineColor = MaterialTheme.colors.secondary),
+            yAxisDrawer = SimpleYAxisDrawer(axisLineColor = MaterialTheme.colors.secondary),
         )
     }
 }

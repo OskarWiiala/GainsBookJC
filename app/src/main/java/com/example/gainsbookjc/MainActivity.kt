@@ -27,7 +27,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gainsbookjc.screens.NavigationGraph
 import com.example.gainsbookjc.ui.theme.GainsBookJCTheme
 
-
 /**
  * @author Oskar Wiiala
  * Main activity of the app
@@ -37,7 +36,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val fontFamily = FontFamily(
-            Font(R.font.sassyfrass_regular, FontWeight.Normal),
+            Font(R.font.medievalsharp_regular, FontWeight.Normal),
         )
         setContent {
             GainsBookJCTheme {
@@ -76,35 +75,39 @@ fun MainScreenView(fontFamily: FontFamily, context: Context) {
 @Composable
 fun TopAppBar(fontFamily: FontFamily) {
     // Annotated string to showcase ease of use in Jetpack Compose
-    Text(
-        text = buildAnnotatedString {
-            withStyle(
-                style = SpanStyle(
-                    fontSize = 40.sp,
-                    fontFamily = fontFamily
-                )
-            ) {
-                append("G")
-            }
-            append("ains")
-            withStyle(
-                style = SpanStyle(
-                    fontSize = 30.sp,
-                    fontFamily = fontFamily
-                )
-            ) {
-                append("B")
-            }
-            append("ook")
-        },
-        textAlign = TextAlign.Center,
-        color = Color.White,
-        fontSize = 24.sp,
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
             .height(50.dp)
-            .background(MaterialTheme.colors.primary)
-    )
+            .fillMaxWidth()
+            .background(Color.White)
+    ) {
+        Text(
+            text = buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        fontSize = 25.sp,
+                        fontFamily = fontFamily
+                    )
+                ) {
+                    append("G")
+                }
+                append("ains")
+                withStyle(
+                    style = SpanStyle(
+                        fontSize = 25.sp,
+                        fontFamily = fontFamily
+                    )
+                ) {
+                    append("B")
+                }
+                append("ook")
+            },
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.secondary,
+            fontSize = 24.sp,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+        )
+    }
 }
 
 /**
@@ -125,14 +128,15 @@ fun BottomNavigation(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    BottomNavigation {
+    BottomNavigation(contentColor = MaterialTheme.colors.secondary, backgroundColor = Color.White) {
         items.forEach { item ->
             BottomNavigationItem(
                 icon = { Icon(painterResource(id = item.icon), contentDescription = item.title) },
                 label = {
                     Text(
                         text = item.title,
-                        fontSize = 9.sp
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.ExtraBold
                     )
                 },
                 alwaysShowLabel = true,

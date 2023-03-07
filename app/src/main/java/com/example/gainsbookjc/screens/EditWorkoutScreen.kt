@@ -32,7 +32,6 @@ import com.example.gainsbookjc.viewmodels.*
 
 @Composable
 fun EditWorkoutScreen(context: Context, navController: NavController, workoutID: Int) {
-    val TAG = "EditWorkoutScreen"
     val supportViewModel: SupportViewModel = viewModel(factory = supportViewModelFactory {
         SupportViewModel(context = context)
     })
@@ -75,7 +74,7 @@ fun EditWorkoutScreen(context: Context, navController: NavController, workoutID:
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-        Text(text = "New workout", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text(text = "Edit workout", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Row(modifier = Modifier.padding(top = 16.dp)) {
             Text(
                 modifier = Modifier.padding(end = 16.dp),

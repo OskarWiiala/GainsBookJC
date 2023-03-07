@@ -26,6 +26,13 @@ interface AppDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStatistic(statistic: Statistic)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertProfile(profile: Profile)
+
+    // Updates
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updateProfile(profile: Profile)
+
     // GET Queries
     // @Transaction is required to prevent multithreading problems
     @Transaction
@@ -51,6 +58,10 @@ interface AppDao {
     @Transaction
     @Query("SELECT * FROM statistic WHERE variableID = :variableID AND type = :type AND month = :month AND year = :year")
     suspend fun getStatisticsBySelection(variableID: Int, type: String, month: Int, year: Int): List<Statistic>
+
+    @Transaction
+    @Query("SELECT * FROM profile")
+    suspend fun getProfile(): List<Profile>
 
     // Deletions
     @Transaction

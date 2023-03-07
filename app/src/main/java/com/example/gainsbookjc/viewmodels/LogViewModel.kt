@@ -17,7 +17,6 @@ import kotlinx.coroutines.launch
  */
 class LogViewModel(context: Context) : ViewModel() {
     val dao = AppDatabase.getInstance(context).appDao
-    val TAG = "LogViewModel"
 
     private val _workouts = MutableStateFlow(listOf<WorkoutWithExercises>())
     val workouts: StateFlow<List<WorkoutWithExercises>> get() = _workouts
@@ -25,7 +24,6 @@ class LogViewModel(context: Context) : ViewModel() {
     // Gets workout from database and updates _workouts
     fun getWorkoutsByYearMonth(year: Int, month: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d(TAG, "year: $year, month: $month")
             val listWorkoutWithExercises = dao.getWorkoutWithExercisesByYearMonth(
                 year = year,
                 month = month

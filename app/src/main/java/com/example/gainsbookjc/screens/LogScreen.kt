@@ -46,8 +46,6 @@ fun LogScreen(
     context: Context,
     navController: NavController
 ) {
-    val TAG = "LogScreen"
-
     val supportViewModel: SupportViewModel = viewModel(factory = supportViewModelFactory {
         SupportViewModel(context)
     })
@@ -67,7 +65,7 @@ fun LogScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colors.primary),
+                .background(Color.White),
             horizontalArrangement = Arrangement.End
         ) {
             // + new year button
@@ -78,6 +76,14 @@ fun LogScreen(
             SelectYearDropdown(supportViewModel = supportViewModel, logViewModel = logViewModel, statsViewModel = null, screen = "LogScreen")
             Spacer(modifier = Modifier.width(10.dp))
         }
+
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .height(2.dp)
+                .background(MaterialTheme.colors.secondary)
+                .align(Alignment.CenterHorizontally)
+        )
 
         // List related elements
         Row(
@@ -149,8 +155,6 @@ fun WorkoutCard(
     logViewModel: LogViewModel,
     supportViewModel: SupportViewModel
 ) {
-    val TAG = "WorkoutCard"
-
     // Handles closing/showing deletion dialog
     var showDeleteDialog by remember {
         mutableStateOf(false)
@@ -250,8 +254,6 @@ fun DeleteWorkoutDialog(
     workoutID: Int,
     setShowDialog: (Boolean) -> Unit
 ) {
-    val TAG = "DeleteWorkoutDialog"
-
     val currentYear by supportViewModel.currentYear.collectAsState()
     val currentMonth by supportViewModel.currentMonth.collectAsState()
 

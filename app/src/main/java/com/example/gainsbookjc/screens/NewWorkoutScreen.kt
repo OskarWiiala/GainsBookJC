@@ -32,7 +32,6 @@ import java.util.*
  */
 @Composable
 fun NewWorkoutScreen(context: Context, navController: NavController) {
-    val TAG = "NewWorkoutScreen"
     val supportViewModel: SupportViewModel = viewModel(factory = supportViewModelFactory {
         SupportViewModel(context)
     })
