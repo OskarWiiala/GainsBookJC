@@ -149,6 +149,7 @@ fun AddNewVariableDialog(statsViewModel: StatsViewModel, setShowDialog: (Boolean
     // Main content
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
+            modifier = Modifier.fillMaxWidth(0.9f),
             shape = RoundedCornerShape(8.dp),
             color = Color.White,
             border = BorderStroke(2.dp, MaterialTheme.colors.primary)
@@ -308,7 +309,7 @@ fun Selections(
         FloatingActionButton(
             modifier = Modifier.padding(top = 30.dp),
             onClick = {
-                navController.navigate(WorkoutScreens.newStatisticScreen.screen_route)
+                navController.navigate(WorkoutScreens.NewStatisticScreen.screen_route)
             },
             contentColor = Color.White,
         ) {

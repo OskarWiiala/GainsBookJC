@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -28,13 +29,15 @@ import com.example.gainsbookjc.screens.NavigationGraph
 import com.example.gainsbookjc.ui.theme.GainsBookJCTheme
 
 /**
- * @author Oskar Wiiala
  * Main activity of the app
- *
+ * @author Oskar Wiiala
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen().apply {
+            // do actions while app is loading
+        }
         val fontFamily = FontFamily(
             Font(R.font.medievalsharp_regular, FontWeight.Normal),
         )
@@ -105,7 +108,9 @@ fun TopAppBar(fontFamily: FontFamily) {
             textAlign = TextAlign.Center,
             color = MaterialTheme.colors.secondary,
             fontSize = 24.sp,
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
         )
     }
 }

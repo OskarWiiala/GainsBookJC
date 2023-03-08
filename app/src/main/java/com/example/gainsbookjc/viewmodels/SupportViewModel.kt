@@ -1,7 +1,6 @@
 package com.example.gainsbookjc.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -17,21 +16,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class SupportViewModel(context: Context) : ViewModel() {
-    val dao = AppDatabase.getInstance(context).appDao
+    private val dao = AppDatabase.getInstance(context).appDao
 
     private val _exercises = MutableStateFlow(listOf<ExerciseWithIndex>())
     val exercises: StateFlow<List<ExerciseWithIndex>> get() = _exercises
 
-    private val _date = MutableStateFlow<WorkoutDate>(WorkoutDate(0, 0, 0))
+    private val _date = MutableStateFlow(WorkoutDate(0, 0, 0))
     val date: StateFlow<WorkoutDate> get() = _date
 
     private val _years = MutableStateFlow(listOf<Year>())
     val years: StateFlow<List<Year>> get() = _years
 
-    private val _currentYear = MutableStateFlow<Int>(0)
+    private val _currentYear = MutableStateFlow(0)
     val currentYear: StateFlow<Int> get() = _currentYear
 
-    private val _currentMonth = MutableStateFlow<Int>(0)
+    private val _currentMonth = MutableStateFlow(0)
     val currentMonth: StateFlow<Int> get() = _currentMonth
 
     fun addExercises(exercises: List<ExerciseWithIndex>) {

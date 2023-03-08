@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ProfileViewModel(context: Context) : ViewModel() {
-    val dao = AppDatabase.getInstance(context).appDao
+    private val dao = AppDatabase.getInstance(context).appDao
 
     private val _profile = MutableStateFlow(listOf<Profile>())
     val profile: StateFlow<List<Profile>> get() = _profile

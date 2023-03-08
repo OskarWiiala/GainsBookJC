@@ -1,7 +1,6 @@
 package com.example.gainsbookjc.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.*
 import com.example.gainsbookjc.database.AppDatabase
 import com.example.gainsbookjc.database.relations.WorkoutWithExercises
@@ -16,7 +15,7 @@ import kotlinx.coroutines.launch
  * View model for LogScreen
  */
 class LogViewModel(context: Context) : ViewModel() {
-    val dao = AppDatabase.getInstance(context).appDao
+    private val dao = AppDatabase.getInstance(context).appDao
 
     private val _workouts = MutableStateFlow(listOf<WorkoutWithExercises>())
     val workouts: StateFlow<List<WorkoutWithExercises>> get() = _workouts

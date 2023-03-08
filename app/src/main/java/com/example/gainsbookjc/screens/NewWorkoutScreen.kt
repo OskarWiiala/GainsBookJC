@@ -105,7 +105,7 @@ fun NewWorkoutScreen(context: Context, navController: NavController) {
                 .fillMaxWidth()
                 .fillMaxHeight(0.7f)
         ) {
-            itemsIndexed(exercises) { index, exerciseWithIndex ->
+            itemsIndexed(exercises) { _, exerciseWithIndex ->
                 ExerciseCard(
                     supportViewModel = supportViewModel,
                     description = exerciseWithIndex.description,

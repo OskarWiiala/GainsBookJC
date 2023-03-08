@@ -124,6 +124,7 @@ fun SelectTimeDialog(timerViewModel: TimerViewModel, setShowDialog: (Boolean) ->
 // Main content
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
+            modifier = Modifier.fillMaxWidth(0.9f),
             shape = RoundedCornerShape(8.dp),
             color = Color.White,
             border = BorderStroke(2.dp, MaterialTheme.colors.primary)

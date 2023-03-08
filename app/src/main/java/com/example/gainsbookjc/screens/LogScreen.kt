@@ -28,8 +28,6 @@ import com.example.gainsbookjc.viewmodels.LogViewModel
 import com.example.gainsbookjc.viewmodels.SupportViewModel
 import com.example.gainsbookjc.viewmodels.logViewModelFactory
 import com.example.gainsbookjc.viewmodels.supportViewModelFactory
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.util.Calendar
 
 /**
@@ -126,7 +124,7 @@ fun WorkoutList(logViewModel: LogViewModel, supportViewModel: SupportViewModel, 
     LazyColumn(modifier = Modifier.fillMaxWidth(0.75f)) {
         itemsIndexed(
             workouts
-        ) { index, item ->
+        ) { _, item ->
             WorkoutCard(
                 workoutWithExercises = item,
                 navController = navController,

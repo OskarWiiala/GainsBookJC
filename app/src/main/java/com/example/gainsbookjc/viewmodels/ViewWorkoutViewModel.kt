@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
  * View model for ViewWorkoutScreeb
  */
 class ViewWorkoutViewModel(context: Context) : ViewModel() {
-    val dao = AppDatabase.getInstance(context).appDao
+    private val dao = AppDatabase.getInstance(context).appDao
 
     private val _workout = MutableStateFlow(listOf<WorkoutWithExercises>())
     val workout: StateFlow<List<WorkoutWithExercises>> get() = _workout

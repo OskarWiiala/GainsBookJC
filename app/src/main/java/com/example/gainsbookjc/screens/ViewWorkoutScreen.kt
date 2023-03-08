@@ -47,7 +47,7 @@ fun ViewWorkoutScreen(navController: NavController, context: Context, workoutID:
             LazyColumn(modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(0.75f)) {
-                itemsIndexed(workout.first().exercises) { index, item ->
+                itemsIndexed(workout.first().exercises) { _, item ->
                     Text(
                         modifier = Modifier
                             .fillMaxWidth()

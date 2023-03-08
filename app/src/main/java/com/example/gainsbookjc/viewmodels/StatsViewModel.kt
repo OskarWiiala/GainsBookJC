@@ -1,7 +1,6 @@
 package com.example.gainsbookjc.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -22,7 +21,7 @@ import java.util.Calendar
  * Also handles adding a new variable to database
  */
 class StatsViewModel(context: Context) : ViewModel() {
-    val dao = AppDatabase.getInstance(context).appDao
+    private val dao = AppDatabase.getInstance(context).appDao
 
     private val _variables = MutableStateFlow(listOf<Variable>())
     val variables: StateFlow<List<Variable>> get() = _variables

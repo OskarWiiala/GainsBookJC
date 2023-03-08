@@ -99,7 +99,7 @@ fun EditWorkoutScreen(context: Context, navController: NavController, workoutID:
                 .fillMaxWidth()
                 .fillMaxHeight(0.7f)
         ) {
-            itemsIndexed(exercises) { index, exerciseWithIndex ->
+            itemsIndexed(exercises) { _, exerciseWithIndex ->
                 ExerciseCard(
                     supportViewModel = supportViewModel,
                     description = exerciseWithIndex.description,

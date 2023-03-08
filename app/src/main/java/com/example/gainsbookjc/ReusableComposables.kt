@@ -70,6 +70,7 @@ fun AddNewYearDialog(supportViewModel: SupportViewModel, setShowDialog: (Boolean
     // Main content
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
+            modifier = Modifier.fillMaxWidth(0.9f),
             shape = RoundedCornerShape(8.dp),
             color = Color.White,
             border = BorderStroke(2.dp, MaterialTheme.colors.primary)
@@ -115,12 +116,12 @@ fun AddNewYearDialog(supportViewModel: SupportViewModel, setShowDialog: (Boolean
  */
 @Composable
 fun SelectMonthDropdown(
+    modifier: Modifier = Modifier,
     supportViewModel: SupportViewModel,
     logViewModel: LogViewModel?,
     statsViewModel: StatsViewModel?,
     screen: String,
     color: Color = MaterialTheme.colors.primary,
-    modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -153,7 +154,7 @@ fun SelectMonthDropdown(
         mutableStateOf(Calendar.getInstance().get(Calendar.MONTH))
     }
     // Select month dropdown
-    Box() {
+    Box {
         Button(
             onClick = { expanded = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = color)
@@ -218,12 +219,12 @@ fun SelectMonthDropdown(
  */
 @Composable
 fun SelectYearDropdown(
+    modifier: Modifier = Modifier,
     supportViewModel: SupportViewModel,
     logViewModel: LogViewModel?,
     statsViewModel: StatsViewModel?,
     screen: String,
     color: Color = MaterialTheme.colors.primary,
-    modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -248,7 +249,7 @@ fun SelectYearDropdown(
     }
 
     // Select year dropdown
-    Box() {
+    Box {
         Button(
             onClick = { expanded = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = color)
@@ -279,7 +280,7 @@ fun SelectYearDropdown(
             }
         ) {
             // adding items
-            years.forEachIndexed { itemIndex, itemValue ->
+            years.forEachIndexed { _, itemValue ->
                 DropdownMenuItem(
                     onClick = {
                         coroutineScope.launch(Dispatchers.IO) {
@@ -606,7 +607,7 @@ fun SelectVariableDropdown(
     }
 
     // Select variable dropdown
-    Box() {
+    Box {
         Button(
             onClick = { expanded = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary)
@@ -627,7 +628,7 @@ fun SelectVariableDropdown(
                 }
             ) {
                 // adding items
-                variables.forEachIndexed { itemIndex, itemValue ->
+                variables.forEachIndexed { _, itemValue ->
                     DropdownMenuItem(
                         onClick = {
                             coroutineScope.launch(Dispatchers.IO) {
@@ -696,7 +697,7 @@ fun SelectTypeDropdown(
     }
 
     // Select type dropdown
-    Box() {
+    Box {
         Button(
             onClick = { expanded = true },
             colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.primary)
@@ -718,7 +719,7 @@ fun SelectTypeDropdown(
             }
         ) {
             // adding items
-            types.forEachIndexed { itemIndex, itemValue ->
+            types.forEachIndexed { _, itemValue ->
                 DropdownMenuItem(
                     onClick = {
                         coroutineScope.launch(Dispatchers.IO) {
@@ -732,7 +733,7 @@ fun SelectTypeDropdown(
 
                             if (screen == "StatsScreen") {
                                 statsViewModel.getStatisticsBySelection(
-                                    variableID = variable.variableID ?: 0,
+                                    variableID = variable.variableID,
                                     type = type2,
                                     month = currentMonth,
                                     year = currentYear
