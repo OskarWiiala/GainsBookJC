@@ -44,9 +44,11 @@ fun ViewWorkoutScreen(navController: NavController, context: Context, workoutID:
                 textAlign = TextAlign.Start,
                 fontSize = 36.sp
             )
-            LazyColumn(modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.75f)) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.75f)
+            ) {
                 itemsIndexed(workout.first().exercises) { _, item ->
                     Text(
                         modifier = Modifier
@@ -64,7 +66,7 @@ fun ViewWorkoutScreen(navController: NavController, context: Context, workoutID:
                 .height(50.dp)
                 .width(150.dp),
             onClick = { navController.navigate(BottomNavItem.LogScreen.screen_route) }) {
-            Text(text = "back", fontSize = 24.sp)
+            Text(text = "BACK", fontSize = 24.sp)
         }
     }
 }

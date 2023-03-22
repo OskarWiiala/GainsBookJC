@@ -1,7 +1,6 @@
 package com.example.gainsbookjc.screens
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -69,9 +68,19 @@ fun LogScreen(
             // + new year button
             AddNewYearButton(supportViewModel = supportViewModel)
             Spacer(modifier = Modifier.width(10.dp))
-            SelectMonthDropdown(supportViewModel = supportViewModel, logViewModel = logViewModel, statsViewModel = null, screen = "LogScreen")
+            SelectMonthDropdown(
+                supportViewModel = supportViewModel,
+                logViewModel = logViewModel,
+                statsViewModel = null,
+                screen = "LogScreen"
+            )
             Spacer(modifier = Modifier.width(10.dp))
-            SelectYearDropdown(supportViewModel = supportViewModel, logViewModel = logViewModel, statsViewModel = null, screen = "LogScreen")
+            SelectYearDropdown(
+                supportViewModel = supportViewModel,
+                logViewModel = logViewModel,
+                statsViewModel = null,
+                screen = "LogScreen"
+            )
             Spacer(modifier = Modifier.width(10.dp))
         }
 
@@ -89,7 +98,11 @@ fun LogScreen(
                 .fillMaxWidth()
                 .fillMaxHeight()
         ) {
-            WorkoutList(logViewModel = logViewModel, supportViewModel = supportViewModel, navController = navController)
+            WorkoutList(
+                logViewModel = logViewModel,
+                supportViewModel = supportViewModel,
+                navController = navController
+            )
             FloatingActionButton(
                 modifier = Modifier
                     .align(Alignment.Bottom)
@@ -112,7 +125,11 @@ fun LogScreen(
  * This composable handles displaying a list of WorkoutCards
  */
 @Composable
-fun WorkoutList(logViewModel: LogViewModel, supportViewModel: SupportViewModel, navController: NavController) {
+fun WorkoutList(
+    logViewModel: LogViewModel,
+    supportViewModel: SupportViewModel,
+    navController: NavController
+) {
     val currentYear by supportViewModel.currentYear.collectAsState()
     val currentMonth by supportViewModel.currentMonth.collectAsState()
     // Calls view model to get workouts from database and update view model
@@ -206,7 +223,6 @@ fun WorkoutCard(
                     .fillMaxWidth()
             ) {
                 IconButton(onClick = {
-                    Log.d("delete", "clicked delete")
                     showDeleteDialog = true
                 }) {
                     Icon(
@@ -218,7 +234,6 @@ fun WorkoutCard(
                     )
                 }
                 IconButton(onClick = {
-                    Log.d("edit", "clicked edit")
                     navController.navigate(
                         WorkoutScreens.EditWorkoutScreen.withArgs(
                             workoutWithExercises.workout.workoutID
@@ -270,14 +285,18 @@ fun DeleteWorkoutDialog(
                     // OK button
                     Button(onClick = {
                         // Calls view model to delete the workout from database and refresh view model
-                        logViewModel.deleteWorkoutByID(workoutID = workoutID, year = currentYear, month = currentMonth)
+                        logViewModel.deleteWorkoutByID(
+                            workoutID = workoutID,
+                            year = currentYear,
+                            month = currentMonth
+                        )
                         setShowDialog(false)
                     }) {
-                        Text(text = "Ok")
+                        Text(text = "OK")
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(onClick = { setShowDialog(false) }) {
-                        Text(text = "Cancel")
+                        Text(text = "CANCEL")
                     }
                 }
             }

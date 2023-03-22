@@ -128,7 +128,7 @@ fun AddNewVariableButton(
         colors = ButtonDefaults.buttonColors(backgroundColor = color),
         contentPadding = PaddingValues(10.dp)
     ) {
-        Text(text = "+ new lift")
+        Text(text = "+ NEW LIFT")
     }
 }
 
@@ -174,11 +174,11 @@ fun AddNewVariableDialog(statsViewModel: StatsViewModel, setShowDialog: (Boolean
                             setShowDialog(false)
                         }
                     }) {
-                        Text(text = "Ok")
+                        Text(text = "OK")
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(onClick = { setShowDialog(false) }) {
-                        Text(text = "Cancel")
+                        Text(text = "CANCEL")
                     }
                 }
             }

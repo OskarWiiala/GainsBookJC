@@ -37,9 +37,6 @@ class StatsViewModel(context: Context) : ViewModel() {
     private val _statistics = MutableStateFlow(listOf<Statistic>())
     val statistics: StateFlow<List<Statistic>> get() = _statistics
 
-    private val _newValue = MutableStateFlow(0.0)
-    val newValue: StateFlow<Double> get() = _newValue
-
     init {
         viewModelScope.launch(Dispatchers.IO) {
             getVariables()
@@ -100,13 +97,6 @@ class StatsViewModel(context: Context) : ViewModel() {
             )
             dao.insertVariable(variable = variable)
             getVariables()
-        }
-    }
-
-    // Handles setting a new value for editable text field in NewStatisticScreen
-    fun setNewValue(value: Double) {
-        viewModelScope.launch(Dispatchers.IO) {
-            _newValue.emit(value)
         }
     }
 

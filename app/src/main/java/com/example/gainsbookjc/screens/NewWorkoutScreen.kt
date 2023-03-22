@@ -43,11 +43,13 @@ fun NewWorkoutScreen(context: Context, navController: NavController) {
     val calendar = Calendar.getInstance()
     // Do this only once
     LaunchedEffect(Unit) {
-        supportViewModel.setDate(WorkoutDate(
-            day = calendar.get(Calendar.DAY_OF_MONTH),
-            month = calendar.get(Calendar.MONTH) + 1,
-            year = calendar.get(Calendar.YEAR)
-        ))
+        supportViewModel.setDate(
+            WorkoutDate(
+                day = calendar.get(Calendar.DAY_OF_MONTH),
+                month = calendar.get(Calendar.MONTH) + 1,
+                year = calendar.get(Calendar.YEAR)
+            )
+        )
     }
 
     // context used for DatePicker

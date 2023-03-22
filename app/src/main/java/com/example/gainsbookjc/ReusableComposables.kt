@@ -48,7 +48,7 @@ fun AddNewYearButton(
         colors = ButtonDefaults.buttonColors(backgroundColor = color),
         contentPadding = PaddingValues(10.dp)
     ) {
-        Text(text = "+ new year", fontWeight = FontWeight.ExtraBold)
+        Text(text = "+ NEW YEAR", fontWeight = FontWeight.ExtraBold)
     }
 }
 
@@ -89,19 +89,19 @@ fun AddNewYearDialog(supportViewModel: SupportViewModel, setShowDialog: (Boolean
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     // OK button
                     Button(onClick = {
-                            // Only accepts integers
-                            val input = textFieldState.toIntOrNull()
-                            if (input != null) {
-                                // calls viewModel to add new year to database and update view model
-                                supportViewModel.insertYear(input)
-                                setShowDialog(false)
-                            }
-                        }) {
-                        Text(text = "Ok")
+                        // Only accepts integers
+                        val input = textFieldState.toIntOrNull()
+                        if (input != null) {
+                            // calls viewModel to add new year to database and update view model
+                            supportViewModel.insertYear(input)
+                            setShowDialog(false)
+                        }
+                    }) {
+                        Text(text = "OK")
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(onClick = { setShowDialog(false) }) {
-                        Text(text = "Cancel")
+                        Text(text = "CANCEL")
                     }
                 }
             }
@@ -453,8 +453,7 @@ fun HandleExerciseDialog(
     Dialog(onDismissRequest = { setShowDialog(false) }) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .fillMaxHeight(0.6f),
+                .fillMaxWidth(0.9f),
             shape = RoundedCornerShape(8.dp),
             color = Color.White,
             border = BorderStroke(2.dp, MaterialTheme.colors.primary)
@@ -465,12 +464,14 @@ fun HandleExerciseDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 if (type == "new") {
                     TextField(
+                        modifier = Modifier.height(62.dp),
                         value = textFieldState,
                         onValueChange = { textFieldState = it },
                         label = { Text(text = "Enter a new exercise here") },
                     )
                 } else if (type == "edit") {
                     TextField(
+                        modifier = Modifier.height(62.dp),
                         value = textFieldState,
                         onValueChange = { textFieldState = it },
                         label = { Text(text = "Edit your exercise here") },
@@ -503,11 +504,11 @@ fun HandleExerciseDialog(
                         supportViewModel.addExercises(exercisesList)
                         setShowDialog(false)
                     }) {
-                        Text(text = "Ok")
+                        Text(text = "OK")
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(onClick = { setShowDialog(false) }) {
-                        Text(text = "Cancel")
+                        Text(text = "CANCEL")
                     }
                 }
             }
@@ -557,11 +558,11 @@ fun DeleteExerciseDialog(
                         supportViewModel.addExercises(exercisesList)
                         setShowDialog(false)
                     }) {
-                        Text(text = "Ok")
+                        Text(text = "OK")
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(onClick = { setShowDialog(false) }) {
-                        Text(text = "Cancel")
+                        Text(text = "CANCEL")
                     }
                 }
             }

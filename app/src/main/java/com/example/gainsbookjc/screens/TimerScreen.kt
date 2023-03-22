@@ -1,6 +1,5 @@
 package com.example.gainsbookjc.screens
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
@@ -27,6 +26,7 @@ import com.example.gainsbookjc.CustomTimeType
 import com.example.gainsbookjc.R
 import com.example.gainsbookjc.viewmodels.TimerViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.lang.Math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -43,7 +43,7 @@ import kotlin.math.sin
 @Composable
 fun TimerScreen() {
     val timerViewModel = TimerViewModel()
-    val totalTime by timerViewModel.totalTime.collectAsState()
+    val startTime by timerViewModel.startTime.collectAsState()
     Surface(
         color = Color.White,
         modifier = Modifier.fillMaxSize()
@@ -55,7 +55,7 @@ fun TimerScreen() {
             CountUpTimer(timerViewModel = timerViewModel)
             CountDownTimer(
                 timerViewModel = timerViewModel,
-                totalTime = totalTime * 1000L,
+                startTime = startTime,
                 modifier = Modifier.size(200.dp)
             )
             Column(
@@ -142,8 +142,7 @@ fun SelectTimeDialog(timerViewModel: TimerViewModel, setShowDialog: (Boolean) ->
                     Button(onClick = {
                         val timeType = timerViewModel.customTimeType.value
                         // setup timer
-                        timerViewModel.setTotalTime(timeType.value)
-                        Log.d("ok button", "timeType: ${timeType.value}")
+                        timerViewModel.setStartTime(timeType.value)
                         setShowDialog(false)
                         timerViewModel.setVisibility(element = "CountDown", value = true)
                         timerViewModel.setVisibility(element = "ButtonCountDown", value = false)
@@ -240,7 +239,7 @@ fun StartCountUpButton(timerViewModel: TimerViewModel, modifier: Modifier = Modi
         Button(
             modifier = modifier,
             onClick = {
-                timerViewModel.setTotalTime(0L)
+                timerViewModel.setStartTime(0L)
                 timerViewModel.setVisibility(element = "ButtonCountDown", value = false)
                 timerViewModel.setVisibility(element = "ButtonCountUp", value = false)
                 timerViewModel.setVisibility(element = "CountUp", value = true)
@@ -261,23 +260,14 @@ fun StartCountUpButton(timerViewModel: TimerViewModel, modifier: Modifier = Modi
 @Composable
 fun CountUpTimer(timerViewModel: TimerViewModel) {
     val isVisible by timerViewModel.isCountUpVisible.collectAsState()
-
     if (isVisible) {
-        var currentTime by remember {
-            mutableStateOf(0L)
-        }
+        val coroutineScope = rememberCoroutineScope()
+        val isCountUpRunning by timerViewModel.isCountUpRunning.collectAsState()
+        val countUpSeconds by timerViewModel.countUpSeconds.collectAsState()
 
-        var isTimerRunning by remember {
-            mutableStateOf(true)
-        }
-
-        // Whenever key changes, rerun this code
-        LaunchedEffect(key1 = currentTime, key2 = isTimerRunning) {
-            if (isTimerRunning) {
-                delay(100L)
-                // Played around with this, 113 seems to be accurate
-                currentTime += 113L
-            }
+        // Do this only once to prevent recomposition side effects
+        LaunchedEffect(Unit) {
+            timerViewModel.startCountUpTimer()
         }
 
         Column(
@@ -285,7 +275,7 @@ fun CountUpTimer(timerViewModel: TimerViewModel) {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "${((currentTime / 1000L) / 60)} m ${(currentTime / 1000L) % 60} s",
+                text = "${((countUpSeconds) / 60)} m ${(countUpSeconds) % 60} s",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
             )
@@ -298,9 +288,13 @@ fun CountUpTimer(timerViewModel: TimerViewModel) {
                 // Toggles the timer
                 Button(
                     onClick = {
-                        timerViewModel.setVisibility(element = "CountUp", value = false)
-                        timerViewModel.setVisibility(element = "ButtonCountDown", value = true)
-                        timerViewModel.setVisibility(element = "ButtonCountUp", value = true)
+                        coroutineScope.launch {
+                            timerViewModel.setIsCountUpRunning(value = false)
+                            timerViewModel.resetCountUpTimer()
+                            timerViewModel.setVisibility(element = "CountUp", value = false)
+                            timerViewModel.setVisibility(element = "ButtonCountDown", value = true)
+                            timerViewModel.setVisibility(element = "ButtonCountUp", value = true)
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -309,17 +303,29 @@ fun CountUpTimer(timerViewModel: TimerViewModel) {
                     Text(text = "STOP", fontSize = 20.sp)
                 }
                 Button(
-                    onClick = { isTimerRunning = !isTimerRunning },
+                    onClick = {
+                        coroutineScope.launch {
+                            timerViewModel.setIsCountUpRunning(value = !isCountUpRunning)
+                            delay(3L)
+                            if (isCountUpRunning) {
+                                timerViewModel.startCountUpTimer()
+                            }
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 5.dp)
                 ) {
-                    Text(text = if (isTimerRunning) "PAUSE" else "RESUME", fontSize = 20.sp)
+                    Text(text = if (isCountUpRunning) "PAUSE" else "RESUME", fontSize = 20.sp)
                 }
                 Button(
                     onClick = {
-                        currentTime = 0L
-                        isTimerRunning = true
+                        coroutineScope.launch {
+                            timerViewModel.setIsCountUpRunning(value = false)
+                            timerViewModel.resetCountUpTimer()
+                            delay(1100L)
+                            timerViewModel.startCountUpTimer()
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -335,22 +341,20 @@ fun CountUpTimer(timerViewModel: TimerViewModel) {
  * @author Oskar Wiiala
  * @param modifier
  * @param timerViewModel
- * @param totalTime how much time was originally selected for the countdown
+ * @param startTime how much time was originally selected for the countdown
  * @param pointColor The color of the point in the timer arc
  * @param inactiveBarColor color of the inactive bar
  * @param activeBarColor color of the active bar
- * @param initialValue value of how much time has passed as a percentage. Should always be 1f, unless you want to start the timer arc from less than 100 % filled.
  * @param strokeWidth width of the line of the arc
  */
 @Composable
 fun CountDownTimer(
     modifier: Modifier = Modifier,
     timerViewModel: TimerViewModel,
-    totalTime: Long,
+    startTime: Long,
     pointColor: Color = MaterialTheme.colors.secondary,
     inactiveBarColor: Color = Color.DarkGray,
     activeBarColor: Color = MaterialTheme.colors.primary,
-    initialValue: Float = 1f,
     strokeWidth: Dp = 5.dp
 ) {
     val isVisible by timerViewModel.isCountDownVisible.collectAsState()
@@ -360,32 +364,18 @@ fun CountDownTimer(
             mutableStateOf(IntSize.Zero)
         }
 
-        // how much time is left compared to max as percentage
-        var valuePercent by remember {
-            mutableStateOf(initialValue)
-        }
+        val secondsRemaining by timerViewModel.secondsRemaining.collectAsState()
 
-        var currentTime by remember {
-            mutableStateOf(totalTime)
-        }
+        // how much time is left compared to max as percentage
+        val progressBarValue by timerViewModel.progressBarValue.collectAsState()
 
         var isTimerRunning by remember {
             mutableStateOf(true)
         }
 
-        // Whenever key changes, rerun this code
-        LaunchedEffect(key1 = totalTime) {
-            currentTime = totalTime
-        }
-
-        // Whenever key changes, rerun this code
-        LaunchedEffect(key1 = currentTime, key2 = isTimerRunning) {
-            if (currentTime > 0 && isTimerRunning) {
-                delay(100L)
-                // Played around with this, 113 seems to be accurate
-                currentTime -= 113L
-                valuePercent = currentTime / totalTime.toFloat()
-            }
+        // Do this only once to prevent recomposition side effects
+        LaunchedEffect(Unit) {
+            timerViewModel.startCountDownTimer(time = startTime)
         }
 
         Column(
@@ -411,7 +401,7 @@ fun CountDownTimer(
                     drawArc(
                         color = activeBarColor,
                         startAngle = -215f,
-                        sweepAngle = 250f * valuePercent,
+                        sweepAngle = 250f * progressBarValue,
                         // Prevents the ends of the arc to be connected to center
                         useCenter = false,
                         size = Size(size.width.toFloat(), size.height.toFloat()),
@@ -421,7 +411,7 @@ fun CountDownTimer(
                     // uses the radius and x and y axis to determine where the point is
                     val center = Offset(size.width / 2f, size.height / 2f)
                     // beta is the angle and 145 seems to fit nicely
-                    val beta = (250f * valuePercent + 145f) * (PI / 180f).toFloat()
+                    val beta = (250f * progressBarValue + 145f) * (PI / 180f).toFloat()
                     val radius = size.width / 2f
                     val sideA = cos(beta) * radius
                     val sideB = sin(beta) * radius
@@ -445,7 +435,7 @@ fun CountDownTimer(
 
                 Text(
                     // currentTime is in ms, so we want to convert it to seconds
-                    text = "${((currentTime / 1000L) / 60)} m ${(currentTime / 1000L) % 60} s",
+                    text = "${((secondsRemaining) / 60)} m ${(secondsRemaining) % 60} s",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                 )
@@ -455,6 +445,7 @@ fun CountDownTimer(
                 // Toggles the timer
                 Button(
                     onClick = {
+                        timerViewModel.timer.cancel()
                         timerViewModel.setVisibility(element = "CountDown", value = false)
                         timerViewModel.setVisibility(element = "ButtonCountDown", value = true)
                         timerViewModel.setVisibility(element = "ButtonCountUp", value = true)
@@ -466,7 +457,12 @@ fun CountDownTimer(
                     Text(text = "STOP", fontSize = 20.sp)
                 }
                 Button(
-                    onClick = { isTimerRunning = !isTimerRunning },
+                    onClick = {
+                        isTimerRunning = !isTimerRunning
+                        val currentSecondsRemaining = timerViewModel.secondsRemaining.value
+                        timerViewModel.timer.cancel()
+                        if (isTimerRunning) timerViewModel.startCountDownTimer(time = currentSecondsRemaining)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 5.dp)
@@ -475,7 +471,8 @@ fun CountDownTimer(
                 }
                 Button(
                     onClick = {
-                        currentTime = totalTime
+                        timerViewModel.timer.cancel()
+                        timerViewModel.startCountDownTimer(time = startTime)
                         isTimerRunning = true
                     },
                     modifier = Modifier.fillMaxWidth()

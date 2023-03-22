@@ -49,8 +49,14 @@ fun NewStatisticScreen(
     // collects the state of the stat view model's type, variable and newValue
     val type by statsViewModel.type.collectAsState()
     val variable by statsViewModel.variable.collectAsState()
-    // is used to initialize and handle changing the user's input in a text field
-    val newValue by statsViewModel.newValue.collectAsState()
+
+    var textFieldValue by remember {
+        mutableStateOf("")
+    }
+
+    var isError by remember {
+        mutableStateOf(false)
+    }
 
     val calendar = Calendar.getInstance()
     // Do this only once
@@ -95,7 +101,7 @@ fun NewStatisticScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.Start
     ) {
-        Text(text = "New workout", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text(text = "New statistic", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Row(modifier = Modifier.padding(top = 16.dp)) {
             Text(
                 modifier = Modifier.padding(end = 16.dp),
@@ -113,23 +119,43 @@ fun NewStatisticScreen(
                 )
             }
         }
-
-        // Variable and type selection
-        Row(modifier = Modifier.fillMaxWidth()) {
-            SelectVariableDropdown(
-                statsViewModel = statsViewModel,
-                supportViewModel = supportViewModel,
-                screen = "NewStatisticScreen"
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.6f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Variable and type selection
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                SelectVariableDropdown(
+                    statsViewModel = statsViewModel,
+                    supportViewModel = supportViewModel,
+                    screen = "NewStatisticScreen",
+                    modifier = Modifier.fillMaxWidth(0.5f)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                SelectTypeDropdown(
+                    statsViewModel = statsViewModel,
+                    supportViewModel = supportViewModel,
+                    screen = "NewStatisticScreen",
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(16.dp)
             )
-            Spacer(modifier = Modifier.width(16.dp))
-            SelectTypeDropdown(
-                statsViewModel = statsViewModel,
-                supportViewModel = supportViewModel,
-                screen = "NewStatisticScreen"
+            ValueTextField(
+                setNewValue = { textFieldValue = it },
+                textFieldState = textFieldValue,
+                isError = isError
             )
         }
-
-        ValueTextField(statsViewModel)
 
         // UI for OK and CANCEL buttons
         Row(
@@ -141,16 +167,19 @@ fun NewStatisticScreen(
             // OK button
             Button(onClick = {
                 // Calls view model to add new statistic to database
-                statsViewModel.insertStatistic(
-                    variableName = variable.variableName,
-                    type = type,
-                    value = newValue,
-                    day = dateVM.day,
-                    month = dateVM.month,
-                    year = dateVM.year,
-                )
-                // navigates back to LogScreen
-                navController.navigate(BottomNavItem.StatsScreen.screen_route)
+                if (textFieldValue.toDoubleOrNull() != null) {
+                    isError = false
+                    statsViewModel.insertStatistic(
+                        variableName = variable.variableName,
+                        type = type,
+                        value = textFieldValue.toDouble(),
+                        day = dateVM.day,
+                        month = dateVM.month,
+                        year = dateVM.year,
+                    )
+                    // navigates back to LogScreen
+                    navController.navigate(BottomNavItem.StatsScreen.screen_route)
+                } else isError = true
             }) {
                 Text(text = "OK")
             }
@@ -167,16 +196,18 @@ fun NewStatisticScreen(
  * Handles changes to the value of the text field
  */
 @Composable
-fun ValueTextField(statsViewModel: StatsViewModel) {
-    val newValue by statsViewModel.newValue.collectAsState()
-    Row(modifier = Modifier.fillMaxWidth()) {
-        TextField(
-            value = newValue.toString(),
-            onValueChange = { statsViewModel.setNewValue(it.toDouble()) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-        Text(text = "Kg", modifier = Modifier.padding(start = 8.dp), fontSize = 30.sp)
-    }
-
+fun ValueTextField(
+    setNewValue: (String) -> Unit,
+    textFieldState: String,
+    isError: Boolean
+) {
+    TextField(
+        isError = isError,
+        modifier = Modifier.fillMaxWidth(),
+        value = textFieldState,
+        onValueChange = { setNewValue(it) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        label = { Text(text = "Enter a value here") }
+    )
 }

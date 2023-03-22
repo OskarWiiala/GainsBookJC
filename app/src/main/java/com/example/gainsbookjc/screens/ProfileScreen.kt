@@ -125,7 +125,7 @@ fun EditProfileButton(profileViewModel: ProfileViewModel) {
                 contentDescription = "Edit profile information",
                 modifier = Modifier.padding(end = 8.dp)
             )
-            Text(text = "Edit", fontSize = 20.sp)
+            Text(text = "EDIT", fontSize = 20.sp)
         }
     }
 }
@@ -232,11 +232,11 @@ fun SetProfileDialog(
                         profileViewModel.setProfile(newProfile)
                         setShowDialog(false)
                     }) {
-                        Text(text = "Ok")
+                        Text(text = "OK")
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Button(onClick = { setShowDialog(false) }) {
-                        Text(text = "Cancel")
+                        Text(text = "CANCEL")
                     }
                 }
             }

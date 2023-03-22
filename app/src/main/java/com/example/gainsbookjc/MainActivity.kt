@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gainsbookjc.screens.NavigationGraph
+import com.example.gainsbookjc.ui.theme.FadedSecondary
 import com.example.gainsbookjc.ui.theme.GainsBookJCTheme
 
 /**
@@ -136,6 +137,7 @@ fun BottomNavigation(navController: NavController) {
     BottomNavigation(contentColor = MaterialTheme.colors.secondary, backgroundColor = Color.White) {
         items.forEach { item ->
             BottomNavigationItem(
+                unselectedContentColor = FadedSecondary,
                 icon = { Icon(painterResource(id = item.icon), contentDescription = item.title) },
                 label = {
                     Text(
